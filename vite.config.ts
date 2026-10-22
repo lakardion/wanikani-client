@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite'
-import solid from 'vite-plugin-solid'
+import { solidStart } from '@solidjs/start/config'
+import { nitro } from 'nitro/vite'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [solid(), tailwindcss()],
+  plugins: [solidStart({ ssr: false, middleware: 'src/middleware.ts' }), nitro(), tailwindcss()],
 })
