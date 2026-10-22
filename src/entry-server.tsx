@@ -9,6 +9,7 @@ export default createHandler(() => (
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <title>WaniKani Practice</title>
+          <script src="/color-mode.js" />
           {assets}
         </head>
         <body>
