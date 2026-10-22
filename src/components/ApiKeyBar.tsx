@@ -6,7 +6,7 @@ export default function ApiKeyBar() {
       <div class="flex items-center gap-2">
         <span class="text-lg font-semibold text-zinc-100">WaniKani SDK Playground</span>
         <span class="rounded bg-purple-500/20 px-1.5 py-0.5 text-xs font-medium text-purple-300">
-          v0.2.0
+          v1.0.0
         </span>
       </div>
       <div class="ml-auto flex w-full max-w-md items-center gap-2">
