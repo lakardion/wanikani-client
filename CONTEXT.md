@@ -22,7 +22,29 @@ The subset of **Known words** sent with one exercise request, spread evenly acro
 A coarse part-of-speech class of a **Known word**: noun, verb, adjective, adverb, or other. Subtypes (godan/ichidan verb, い/な adjective) do not split a group.
 _Avoid_: part of speech (too fine-grained)
 
+**Grammar point**:
+One entry in a fixed list of JLPT N5-N4 grammar patterns. Each **Exercise** targets exactly one.
+_Avoid_: grammar target, grammar rule
+
+**Exercise**:
+One generated Japanese sentence that uses a **Grammar point**, with its reference translation and **Explanation**. The user translates it to English.
+
+**Explanation**:
+The teaching part of an **Exercise**: a word-by-word breakdown with readings, a short grammar explanation, and one more example sentence. It shows after every **Exercise**, whether the user passed or not.
+
+**Pass**:
+A graded answer with a meaning score of 70 or more out of 100.
+
+**Give up**:
+Submitting an empty answer or `?`. It skips grading and shows the **Explanation**.
+
+**Session**:
+An endless run of **Exercises** with a running count of passes. It ends when the page closes.
+
 ## Relationships
+
+- An **Exercise** uses only **Known kanji**; its words come mostly from the **Word sample**.
+- Each **Exercise** allows one retry after a failed answer, then shows the **Explanation**.
 
 - A **Word sample** is drawn from the **Known words**; the **Known kanji** go with it in full.
 - Radicals are never **Known items**: they are not words and do not appear in sentences.
