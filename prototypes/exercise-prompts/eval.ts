@@ -91,14 +91,15 @@ for (const c of GEN_ONLY ? [] : GRADE_CASES) {
 writeFileSync(out("raw.json"), JSON.stringify({ gen, grade }, null, 2));
 
 const median = (xs: number[]) => xs.sort((a, b) => a - b)[Math.floor(xs.length / 2)] ?? 0;
+const cost = (rs: any[]) => (rs.reduce((s, r) => s + (r.cost ?? 0), 0) / (rs.length || 1)).toFixed(6);
 const md: string[] = [`# Exercise prompt eval\n`, `Known: ${words} words, ${kanji.length} kanji. Generation runs per model: ${RUNS}. Grading reps per answer: ${GRADE_REPS}.\n`];
 
-md.push(`## Generation summary\n`, `| Model | Errors | Kanji-clean | Median ms | Avg in tok | Avg out tok |`, `|---|---|---|---|---|---|`);
+md.push(`## Generation summary\n`, `| Model | Errors | Kanji-clean | Median ms | Avg in tok | Avg out tok | Avg cost $ | Providers |`, `|---|---|---|---|---|---|---|---|`);
 for (const model of Object.values(MODELS)) {
   const rs = gen.filter((r) => r.model === model);
   const ok = rs.filter((r) => !("error" in r));
   const avg = (f: (r: any) => number) => Math.round(ok.reduce((s, r) => s + (f(r) ?? 0), 0) / (ok.length || 1));
-  md.push(`| ${model} | ${rs.length - ok.length} | ${ok.filter((r) => r.violations.length === 0).length}/${ok.length} | ${median(ok.map((r) => r.ms))} | ${avg((r) => r.usage.inputTokens)} | ${avg((r) => r.usage.outputTokens)} |`);
+  md.push(`| ${model} | ${rs.length - ok.length} | ${ok.filter((r) => r.violations.length === 0).length}/${ok.length} | ${median(ok.map((r) => r.ms))} | ${avg((r) => r.usage.inputTokens)} | ${avg((r) => r.usage.outputTokens)} | ${cost(ok)} | ${[...new Set(ok.map((r) => r.provider))].join(", ")} |`);
 }
 
 md.push(`\n## Generated sentences (judge naturalness and grammar use)\n`);
@@ -112,12 +113,12 @@ for (let i = 0; i < gen.length; i += MODELS.length) {
 }
 
 if (!GEN_ONLY) {
-md.push(`## Grading\n`, `| Model | In band | Max spread between reps |`, `|---|---|---|`);
+md.push(`## Grading\n`, `| Model | In band | Max spread between reps | Median ms | Avg cost $ |`, `|---|---|---|---|---|`);
 for (const model of Object.values(MODELS)) {
   const rs = grade.filter((g) => g.model === model);
   const all = rs.flatMap((g) => g.results.filter((x: any) => !x.error).map((x: any) => ({ ...x, min: g.min, max: g.max })));
   const spread = Math.max(...rs.map((g) => { const s = g.results.filter((x: any) => !x.error).map((x: any) => x.score); return s.length < 2 ? 0 : Math.max(...s) - Math.min(...s); }));
-  md.push(`| ${model} | ${all.filter((x) => x.score >= x.min && x.score <= x.max).length}/${all.length} | ${spread} |`);
+  md.push(`| ${model} | ${all.filter((x) => x.score >= x.min && x.score <= x.max).length}/${all.length} | ${spread} | ${median(all.map((x: any) => x.ms))} | ${cost(all)} |`);
 }
 md.push(`\n| Model | Japanese | Answer | Band | Scores | Feedback (rep 1) |`, `|---|---|---|---|---|---|`);
 for (const g of grade)
