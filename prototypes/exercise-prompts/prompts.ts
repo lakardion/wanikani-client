@@ -55,9 +55,24 @@ feedback: one or two short English sentences. At 90 or more, confirm briefly. Be
 /** OpenRouter model IDs, comma-separated in `OPENROUTER_MODELS`. The first is the default; the eval compares all. */
 export const MODELS = (process.env.OPENROUTER_MODELS ?? "nvidia/nemotron-3.5-super-vl:free,xingchen-agi/xing4.0-29b-a4b:free").split(",");
 
-/** ponytail: one call every 3.1 s keeps free models under 20 req/min; drop on paid models. */
+/** ponytail: one call every 3.1 s keeps free models under 20 req/min; paid models skip it. */
 let gate = Promise.resolve();
-const throttle = () => (gate = gate.then(() => new Promise((r) => setTimeout(r, 3100))));
+const throttle = (model: string) =>
+  model.endsWith(":free") ? (gate = gate.then(() => new Promise((r) => setTimeout(r, 3100)))) : Promise.resolve();
+
+/** Models that reason by default and accept `effort: "none"`. Mistral does not reason by default; Gemini 3.5 rejects `"none"`. */
+const REASONING_OFF = ["openai/", "anthropic/", "deepseek/", "google/gemini-3.1"];
+
+const llm = (model: string) =>
+  openrouter(model, {
+    provider: { require_parameters: true, sort: "price" },
+    plugins: [{ id: "response-healing" }],
+    usage: { include: true },
+    ...(REASONING_OFF.some((p) => model.startsWith(p)) && { reasoning: { effort: "none" as const } }),
+  });
+
+/** Real cost in USD and the endpoint OpenRouter routed to. */
+const billing = (meta: any) => ({ cost: meta?.openrouter?.usage?.cost as number | undefined, provider: meta?.openrouter?.provider as string | undefined });
 
 const KANJI_RE = /[㐀-䶿一-鿿]/g;
 
@@ -77,10 +92,10 @@ export async function generateExercise(input: {
     `ALLOWED KANJI: ${input.kanji}`,
     `WORD LIST:\n${input.sample.map((w) => `${w.characters} = ${w.meaning}`).join("\n")}`,
   ].join("\n\n");
-  await throttle();
+  await throttle(model);
   const t0 = performance.now();
   const res = await generateText({
-    model: openrouter(model),
+    model: llm(model),
     system: GENERATE_SYSTEM,
     prompt,
     output: Output.object({ schema: exerciseSchema }),
@@ -93,6 +108,7 @@ export async function generateExercise(input: {
     violations: kanjiViolations(exercise.japanese + exercise.example.japanese, input.kanji),
     ms: Math.round(performance.now() - t0),
     usage: res.usage,
+    ...billing(res.providerMetadata),
   };
 }
 
@@ -109,13 +125,13 @@ export async function gradeAnswer(input: {
     `TARGET GRAMMAR: ${input.grammar.pattern} — ${input.grammar.meaning}`,
     `LEARNER ANSWER: ${input.answer}`,
   ].join("\n");
-  await throttle();
+  await throttle(model);
   const t0 = performance.now();
   const res = await generateText({
-    model: openrouter(model),
+    model: llm(model),
     system: GRADE_SYSTEM,
     prompt,
     output: Output.object({ schema: gradeSchema }),
   });
-  return { ...res.output, pass: res.output.score >= PASS_SCORE, ms: Math.round(performance.now() - t0), usage: res.usage };
+  return { ...res.output, pass: res.output.score >= PASS_SCORE, ms: Math.round(performance.now() - t0), usage: res.usage, ...billing(res.providerMetadata) };
 }
