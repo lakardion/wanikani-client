@@ -13,6 +13,7 @@
         "ai": "^7.0.137",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
+        "lindera-wasm-ipadic-nodejs": "^2.3.4",
         "nitro": "^3.0.260903-beta",
         "solid-js": "^1.9.17",
         "tailwind-merge": "^3.7.0",
@@ -460,6 +461,8 @@
     "lightningcss-win32-arm64-msvc": ["lightningcss-win32-arm64-msvc@1.32.0", "", { "os": "win32", "cpu": "arm64" }, "sha512-8SbC8BR40pS6baCM8sbtYDSwEVQd4JlFTOlaD3gWGHfThTcABnNDBda6eTZeqbofalIJhFx0qKzgHJmcPTnGdw=="],
 
     "lightningcss-win32-x64-msvc": ["lightningcss-win32-x64-msvc@1.32.0", "", { "os": "win32", "cpu": "x64" }, "sha512-Amq9B/SoZYdDi1kFrojnoqPLxYhQ4Wo5XiL8EVJrVsB8ARoC1PWW6VGtT0WKCemjy8aC+louJnjS7U18x3b06Q=="],
+
+    "lindera-wasm-ipadic-nodejs": ["lindera-wasm-ipadic-nodejs@2.3.4", "", {}, "sha512-9O3CWiFIivF61dFjtcNdwtNvtQGnlYtdIcZPGrdmCEANAt8KN2wVHCtWeGU9JuXT802qkCYrz2lUX5PkiSFdwg=="],
 
     "lru-cache": ["lru-cache@5.1.1", "", { "dependencies": { "yallist": "^3.0.2" } }, "sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w=="],
 

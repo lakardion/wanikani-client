@@ -4,5 +4,5 @@ import { nitro } from 'nitro/vite'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [solidStart({ ssr: false, middleware: 'src/middleware.ts' }), nitro(), tailwindcss()],
+  plugins: [solidStart({ ssr: false, middleware: 'src/middleware.ts' }), nitro({ traceDeps: ['lindera-wasm-ipadic-nodejs'] }), tailwindcss()],
 })

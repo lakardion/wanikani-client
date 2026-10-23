@@ -49,6 +49,15 @@ const Section = (props: { title: string; children: JSX.Element }) => (
   </section>
 )
 
+/** The kana reading under a Japanese text, hidden when it is the same as the text. */
+const Reading = (props: { text: string; reading: string }) => (
+  <Show when={props.reading !== props.text}>
+    <span lang="ja" class="text-sm text-muted-foreground">
+      {props.reading}
+    </span>
+  </Show>
+)
+
 /** The last grade, or "Gave up" when there is none. */
 function Verdict(props: { grade: Grade | null }) {
   return (
@@ -74,8 +83,9 @@ function Explanation(props: { exercise: Exercise }) {
           <For each={props.exercise.breakdown}>
             {(w) => (
               <>
-                <dt lang="ja" class="text-base">
+                <dt lang="ja" class="flex flex-col text-base">
                   {w.text}
+                  <Reading text={w.text} reading={w.reading} />
                 </dt>
                 <dd class="self-center">{w.meaning}</dd>
               </>
@@ -99,6 +109,7 @@ function Explanation(props: { exercise: Exercise }) {
           <p lang="ja" class="text-base">
             {props.exercise.example.japanese}
           </p>
+          <Reading text={props.exercise.example.japanese} reading={props.exercise.example.reading} />
           <p>{props.exercise.example.english}</p>
         </div>
       </Section>
@@ -219,6 +230,9 @@ export default function ExerciseLoop(props: { items: KnownItem[] }) {
                 <p lang="ja" class="text-3xl leading-relaxed">
                   {x().japanese}
                 </p>
+                <Show when={explaining()}>
+                  <Reading text={x().japanese} reading={x().reading} />
+                </Show>
                 <Show when={!explaining()}>
                   <Switch>
                     <Match when={gradeError()}>
