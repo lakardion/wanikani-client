@@ -5,6 +5,8 @@ import { z } from 'zod'
 import { isPass } from '~/lib/grading'
 import { GRAMMAR } from '~/lib/grammar'
 import { kanjiViolations } from '~/lib/kanji'
+import type { Segment } from '~/lib/reading'
+import { rubySegments } from './tokenizer'
 
 const DAILY_LLM_CALL_CAP = 300
 const DEFAULT_MODEL = 'openai/gpt-6-luna'
@@ -64,7 +66,13 @@ const gradeInput = z.object({
 const gradeSchema = z.object({ score: z.number().int().min(0).max(100), feedback: z.string() })
 
 export type Grade = z.infer<typeof gradeSchema> & { pass: boolean }
-export type Exercise = z.infer<typeof exerciseSchema> & { grammarId: GrammarId }
+type Generated = z.infer<typeof exerciseSchema>
+export type Exercise = Omit<Generated, 'breakdown' | 'example'> & {
+  grammarId: GrammarId
+  furigana: Segment[]
+  breakdown: (Generated['breakdown'][number] & { furigana: Segment[] })[]
+  example: Generated['example'] & { furigana: Segment[] }
+}
 export type ExerciseError = 'daily_limit' | 'exercise_failed'
 export type Result<T> = { ok: true; value: T } | { ok: false; error: ExerciseError }
 
@@ -119,7 +127,16 @@ export async function generateExercise(input: z.input<typeof generateInput>): Pr
         throw e
       })
       if (exercise && kanjiViolations(exercise.japanese + exercise.example.japanese, kanji).length === 0)
-        return { ok: true, value: { grammarId, ...exercise } }
+        return {
+          ok: true,
+          value: {
+            ...exercise,
+            grammarId,
+            furigana: rubySegments(exercise.japanese),
+            breakdown: exercise.breakdown.map((w) => ({ ...w, furigana: rubySegments(w.text) })),
+            example: { ...exercise.example, furigana: rubySegments(exercise.example.japanese) },
+          },
+        }
     }
     return { ok: false, error: 'exercise_failed' }
   } catch (e) {

@@ -8,6 +8,7 @@ import { TextField, TextFieldInput, TextFieldLabel } from '~/components/ui/text-
 import { isGiveUp } from '~/lib/grading'
 import { GRAMMAR, randomGrammar } from '~/lib/grammar'
 import type { KnownItem } from '~/lib/known-items'
+import type { Segment } from '~/lib/reading'
 import { wordSample } from '~/lib/word-sample'
 import { generateExercise, gradeAnswer, type Exercise, type ExerciseError, type Grade } from '~/server/exercise'
 
@@ -49,6 +50,20 @@ const Section = (props: { title: string; children: JSX.Element }) => (
   </section>
 )
 
+/** Japanese text with furigana above each kanji run. */
+const Furigana = (props: { segments: Segment[] }) => (
+  <For each={props.segments}>
+    {(s) => (
+      <Show when={s.ruby} fallback={s.text}>
+        <ruby>
+          {s.text}
+          <rt class="text-muted-foreground">{s.ruby}</rt>
+        </ruby>
+      </Show>
+    )}
+  </For>
+)
+
 /** The last grade, or "Gave up" when there is none. */
 function Verdict(props: { grade: Grade | null }) {
   return (
@@ -75,7 +90,7 @@ function Explanation(props: { exercise: Exercise }) {
             {(w) => (
               <>
                 <dt lang="ja" class="text-base">
-                  {w.text}
+                  <Furigana segments={w.furigana} />
                 </dt>
                 <dd class="self-center">{w.meaning}</dd>
               </>
@@ -96,8 +111,8 @@ function Explanation(props: { exercise: Exercise }) {
       </Section>
       <Section title="Example">
         <div class="flex flex-col gap-0.5 text-sm">
-          <p lang="ja" class="text-base">
-            {props.exercise.example.japanese}
+          <p lang="ja" class="text-base leading-loose">
+            <Furigana segments={props.exercise.example.furigana} />
           </p>
           <p>{props.exercise.example.english}</p>
         </div>
@@ -217,7 +232,9 @@ export default function ExerciseLoop(props: { items: KnownItem[] }) {
             {(x) => (
               <>
                 <p lang="ja" class="text-3xl leading-relaxed">
-                  {x().japanese}
+                  <Show when={explaining()} fallback={x().japanese}>
+                    <Furigana segments={x().furigana} />
+                  </Show>
                 </p>
                 <Show when={!explaining()}>
                   <Switch>
