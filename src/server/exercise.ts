@@ -2,6 +2,7 @@
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { APICallError, generateText, NoObjectGeneratedError, Output } from 'ai'
 import { z } from 'zod'
+import { isPass } from '~/lib/grading'
 import { GRAMMAR } from '~/lib/grammar'
 import { kanjiViolations } from '~/lib/kanji'
 
@@ -24,6 +25,18 @@ Fields:
 - grammarExplanation: 2 to 4 short English sentences for a learner. Explain what the target grammar means, how it is formed, and how it works in this sentence.
 - example: one more short sentence that uses the same target grammar, with its English translation. Follow the same kanji and vocabulary rules.`
 
+const GRADE_SYSTEM = `You grade a learner's English translation of a Japanese sentence.
+
+Score 0 to 100 for MEANING only. Ignore English spelling, grammar, punctuation, capitalisation, and word choice when the meaning is the same. The reference is one valid translation, not the only one; judge against the Japanese.
+
+Rubric:
+- 90-100: same meaning; only phrasing differs.
+- 70-89: core meaning right; one minor detail off (a modifier, a nuance of politeness, singular/plural, a small omitted word).
+- 40-69: one key element wrong: tense, negation, who does what to whom, the meaning of the target grammar, or a key content word.
+- 0-39: mostly wrong, unrelated, or empty.
+
+feedback: one or two short English sentences. At 90 or more, confirm briefly. Below 90, name the specific part that is off (which word or which meaning). Never write out the full correct translation.`
+
 type GrammarId = (typeof GRAMMAR)[number]['id']
 const grammarIds = GRAMMAR.map((g) => g.id) as [GrammarId, ...GrammarId[]]
 
@@ -41,6 +54,16 @@ const exerciseSchema = z.object({
   example: z.object({ japanese: z.string(), english: z.string() }),
 })
 
+const gradeInput = z.object({
+  grammarId: z.enum(grammarIds),
+  japanese: z.string().max(200),
+  english: z.string().max(400),
+  answer: z.string().max(400),
+})
+
+const gradeSchema = z.object({ score: z.number().int().min(0).max(100), feedback: z.string() })
+
+export type Grade = z.infer<typeof gradeSchema> & { pass: boolean }
 export type Exercise = z.infer<typeof exerciseSchema> & { grammarId: GrammarId }
 export type ExerciseError = 'daily_limit' | 'exercise_failed'
 export type Result<T> = { ok: true; value: T } | { ok: false; error: ExerciseError }
@@ -99,6 +122,24 @@ export async function generateExercise(input: z.input<typeof generateInput>): Pr
         return { ok: true, value: { grammarId, ...exercise } }
     }
     return { ok: false, error: 'exercise_failed' }
+  } catch (e) {
+    if (e instanceof DailyLimit) return { ok: false, error: 'daily_limit' }
+    throw e
+  }
+}
+
+export async function gradeAnswer(input: z.input<typeof gradeInput>): Promise<Result<Grade>> {
+  const { grammarId, japanese, english, answer } = gradeInput.parse(input)
+  const grammar = GRAMMAR.find((g) => g.id === grammarId)!
+  const prompt = [
+    `JAPANESE: ${japanese}`,
+    `REFERENCE TRANSLATION: ${english}`,
+    `TARGET GRAMMAR: ${grammar.pattern} — ${grammar.meaning}`,
+    `LEARNER ANSWER: ${answer}`,
+  ].join('\n')
+  try {
+    const grade = await llm(GRADE_SYSTEM, prompt, gradeSchema)
+    return { ok: true, value: { ...grade, pass: isPass(grade.score) } }
   } catch (e) {
     if (e instanceof DailyLimit) return { ok: false, error: 'daily_limit' }
     throw e

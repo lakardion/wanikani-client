@@ -1,12 +1,15 @@
 import { createSignal, For, Match, onCleanup, onMount, Show, Switch, type JSX } from 'solid-js'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
+import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '~/components/ui/drawer'
 import { Spinner } from '~/components/ui/spinner'
+import { TextField, TextFieldInput, TextFieldLabel } from '~/components/ui/text-field'
+import { isGiveUp } from '~/lib/grading'
 import { GRAMMAR, randomGrammar } from '~/lib/grammar'
 import type { KnownItem } from '~/lib/known-items'
 import { wordSample } from '~/lib/word-sample'
-import { generateExercise, type Exercise, type ExerciseError } from '~/server/exercise'
+import { generateExercise, gradeAnswer, type Exercise, type ExerciseError, type Grade } from '~/server/exercise'
 
 type Failure = ExerciseError | 'other'
 type Step = { name: 'waiting' } | { name: 'answering' | 'explanation'; exercise: Exercise } | { name: 'error'; error: Failure }
@@ -19,6 +22,8 @@ const ERRORS: Record<Failure, string> = {
 
 /** Set by `daily_limit`; generation stays off until reload. */
 const [generationOff, setGenerationOff] = createSignal(false)
+/** The **Session** count, in memory only. */
+const [count, setCount] = createSignal({ passed: 0, done: 0 })
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
@@ -43,6 +48,22 @@ const Section = (props: { title: string; children: JSX.Element }) => (
     {props.children}
   </section>
 )
+
+/** The last grade, or "Gave up" when there is none. */
+function Verdict(props: { grade: Grade | null }) {
+  return (
+    <Show when={props.grade} fallback={<Badge variant="secondary" class="w-fit">Gave up</Badge>}>
+      {(g) => (
+        <div class="flex flex-col gap-1">
+          <Badge variant={g().pass ? 'default' : 'secondary'} class="w-fit">
+            {g().pass ? 'Pass' : 'Not passed'} · {g().score}
+          </Badge>
+          <p class="text-sm">{g().feedback}</p>
+        </div>
+      )}
+    </Show>
+  )
+}
 
 function Explanation(props: { exercise: Exercise }) {
   const grammar = () => GRAMMAR.find((g) => g.id === props.exercise.grammarId)
@@ -88,11 +109,20 @@ function Explanation(props: { exercise: Exercise }) {
 export default function ExerciseLoop(props: { items: KnownItem[] }) {
   const [step, setStep] = createSignal<Step>({ name: 'waiting' })
   const [first, setFirst] = createSignal(true)
+  const [answer, setAnswer] = createSignal('')
+  /** The last grade of the current **Exercise**; a failed one means the retry is used. */
+  const [grade, setGrade] = createSignal<Grade | null>(null)
+  const [grading, setGrading] = createSignal(false)
+  /** A failed `gradeAnswer` call; the answer stays so Check can send it again. */
+  const [gradeError, setGradeError] = createSignal<Failure | null>(null)
   let run = 0
 
   async function generate() {
     const current = ++run
     setStep({ name: 'waiting' })
+    setAnswer('')
+    setGrade(null)
+    setGradeError(null)
     const { sample, kanji } = wordSample(props.items)
     try {
       const res = await generateExercise({ grammarId: randomGrammar().id, sample, kanji })
@@ -104,6 +134,38 @@ export default function ExerciseLoop(props: { items: KnownItem[] }) {
       }
     } catch {
       if (current === run) setStep({ name: 'error', error: 'other' })
+    }
+  }
+
+  function explain(exercise: Exercise) {
+    setCount((c) => ({ passed: c.passed + (grade()?.pass ? 1 : 0), done: c.done + 1 }))
+    setStep({ name: 'explanation', exercise })
+  }
+
+  async function submit(text: string) {
+    const x = exercise()!
+    if (isGiveUp(text)) {
+      setGrade(null)
+      return explain(x)
+    }
+    const current = run
+    const retried = grade() !== null
+    setGrading(true)
+    setGradeError(null)
+    try {
+      const res = await gradeAnswer({ grammarId: x.grammarId, japanese: x.japanese, english: x.english, answer: text })
+      if (current !== run) return
+      if (!res.ok) {
+        if (res.error === 'daily_limit') setGenerationOff(true)
+        return setGradeError(res.error)
+      }
+      setGrade(res.value)
+      setAnswer('')
+      if (res.value.pass || retried) explain(x)
+    } catch {
+      if (current === run) setGradeError('other')
+    } finally {
+      if (current === run) setGrading(false)
     }
   }
 
@@ -127,6 +189,11 @@ export default function ExerciseLoop(props: { items: KnownItem[] }) {
 
   return (
     <>
+      <div class="flex justify-center">
+        <Badge variant="outline" class="tabular-nums">
+          ✓ {count().passed} · {count().done} done
+        </Badge>
+      </div>
       <div class={`flex flex-1 flex-col gap-4 py-8 text-center ${explaining() ? 'justify-start' : 'justify-center'}`}>
         <Switch>
           <Match when={step().name === 'waiting'}>
@@ -148,18 +215,59 @@ export default function ExerciseLoop(props: { items: KnownItem[] }) {
           </Match>
           <Match when={exercise()}>
             {(x) => (
-              <p lang="ja" class="text-3xl leading-relaxed">
-                {x().japanese}
-              </p>
+              <>
+                <p lang="ja" class="text-3xl leading-relaxed">
+                  {x().japanese}
+                </p>
+                <Show when={!explaining()}>
+                  <Switch>
+                    <Match when={gradeError()}>
+                      {(error) => (
+                        <Alert variant={error() === 'daily_limit' ? 'default' : 'destructive'} class="text-left">
+                          <AlertTitle>{ERRORS[error()]}</AlertTitle>
+                          <AlertDescription>
+                            {error() === 'daily_limit'
+                              ? 'Generation stays off until you reload the page.'
+                              : 'Check again to send the same answer.'}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </Match>
+                    <Match when={grade()}>
+                      <div class="mx-auto max-w-xs rounded-2xl bg-muted px-4 py-3 text-left">
+                        <Verdict grade={grade()} />
+                      </div>
+                    </Match>
+                  </Switch>
+                </Show>
+              </>
             )}
           </Match>
         </Switch>
       </div>
       <Show when={step().name === 'answering'}>
         <div class="sticky bottom-0 -mx-4 border-t bg-background px-4 pb-6 pt-3">
-          <Button class="w-full" onClick={() => setStep({ name: 'explanation', exercise: exercise()! })}>
-            Reveal
-          </Button>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              void submit(answer())
+            }}
+          >
+            <TextField value={answer()} onChange={setAnswer} disabled={grading()}>
+              <TextFieldLabel class="sr-only">Your English translation</TextFieldLabel>
+              <TextFieldInput placeholder="Type the meaning in English" autocomplete="off" enterkeyhint="send" />
+            </TextField>
+            <div class="mt-3 flex gap-2">
+              <Button type="button" variant="ghost" disabled={grading()} onClick={() => void submit('')}>
+                Give up
+              </Button>
+              <Button type="submit" class="flex-1" disabled={grading()}>
+                <Show when={!grading()} fallback={<><Spinner class="size-4" /> Grading</>}>
+                  {grade() ? 'Try again' : 'Check'}
+                </Show>
+              </Button>
+            </div>
+          </form>
         </div>
       </Show>
       <Drawer open={explaining()} onOpenChange={() => {}} closeOnOutsidePointer={false}>
@@ -169,7 +277,8 @@ export default function ExerciseLoop(props: { items: KnownItem[] }) {
               <>
                 <DrawerHeader class="text-left">
                   <DrawerTitle class="sr-only">Explanation</DrawerTitle>
-                  <p class="text-sm">{x().english}</p>
+                  <Verdict grade={grade()} />
+                  <p class="mt-2 text-sm">{x().english}</p>
                 </DrawerHeader>
                 <Explanation exercise={x()} />
                 <div class="border-t p-4 pb-6">
