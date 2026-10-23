@@ -1,12 +1,12 @@
 'use server'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-import { APICallError, generateText, Output } from 'ai'
+import { APICallError, generateText, NoObjectGeneratedError, Output } from 'ai'
 import { z } from 'zod'
 import { GRAMMAR } from '~/lib/grammar'
 import { kanjiViolations } from '~/lib/kanji'
 
 const DAILY_LLM_CALL_CAP = 300
-const DEFAULT_MODEL = 'nvidia/nemotron-3.5-super-vl:free'
+const DEFAULT_MODEL = 'openai/gpt-6-luna'
 
 const GENERATE_SYSTEM = `You write one short Japanese practice sentence for an English-speaking learner of Japanese.
 
@@ -63,7 +63,8 @@ function takeCall() {
 const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY })
 const model = () =>
   openrouter(process.env.OPENROUTER_MODEL || DEFAULT_MODEL, {
-    provider: { require_parameters: true },
+    provider: { require_parameters: true, sort: 'price' },
+    reasoning: { effort: 'none' },
     plugins: [{ id: 'response-healing' }],
   })
 
@@ -71,7 +72,7 @@ const model = () =>
 async function llm<T>(system: string, prompt: string, schema: z.ZodType<T>): Promise<T> {
   takeCall()
   try {
-    const res = await generateText({ model: model(), system, prompt, output: Output.object({ schema }), maxRetries: 0 })
+    const res = await generateText({ model: model(), system, prompt, output: Output.object({ schema }), maxOutputTokens: 1000, maxRetries: 0 })
     return res.output
   } catch (e) {
     if (APICallError.isInstance(e) && (e.statusCode === 402 || e.statusCode === 429)) throw new DailyLimit()
@@ -89,8 +90,12 @@ export async function generateExercise(input: z.input<typeof generateInput>): Pr
   ].join('\n\n')
   try {
     for (let attempt = 0; attempt < 2; attempt++) {
-      const exercise = await llm(GENERATE_SYSTEM, prompt, exerciseSchema)
-      if (kanjiViolations(exercise.japanese + exercise.example.japanese, kanji).length === 0)
+      /** A reply cut off by `maxOutputTokens` fails validation; it counts as a failed attempt. */
+      const exercise = await llm(GENERATE_SYSTEM, prompt, exerciseSchema).catch((e) => {
+        if (NoObjectGeneratedError.isInstance(e)) return null
+        throw e
+      })
+      if (exercise && kanjiViolations(exercise.japanese + exercise.example.japanese, kanji).length === 0)
         return { ok: true, value: { grammarId, ...exercise } }
     }
     return { ok: false, error: 'exercise_failed' }

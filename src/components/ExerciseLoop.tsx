@@ -31,7 +31,7 @@ function Waiting(props: { first: boolean }) {
       <Spinner class="size-8" />
       <span class="text-3xl tabular-nums">{mmss(elapsed())}</span>
       <span class="text-sm text-muted-foreground">
-        {props.first ? 'The first exercise takes about a minute.' : 'The next exercise is still generating.'}
+        {props.first ? 'Generating the first exercise.' : 'The next exercise is still generating.'}
       </span>
     </div>
   )
