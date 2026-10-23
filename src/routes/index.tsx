@@ -1,5 +1,6 @@
 import { createSignal, Match, onMount, Show, Switch } from 'solid-js'
 import { WanikaniApiError } from 'wanikani-sdk'
+import ExerciseLoop from '~/components/ExerciseLoop'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -246,11 +247,7 @@ export default function Home() {
             </CardFooter>
           </Card>
         </Match>
-        <Match when={true}>
-          <p class="py-12 text-center text-sm text-muted-foreground">
-            {fmt(counts().words)} known words and {fmt(counts().kanji)} known kanji are ready. Exercises come next.
-          </p>
-        </Match>
+        <Match when={knownItems()}>{(k) => <ExerciseLoop items={Object.values(k().items)} />}</Match>
       </Switch>
     </div>
   )
