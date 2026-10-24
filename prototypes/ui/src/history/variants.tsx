@@ -1,5 +1,6 @@
 /** PROTOTYPE: three structurally different takes on the History screens. Fake data only. */
 import { createSignal, For, Match, Show, Switch, type JSX } from 'solid-js'
+import { Dynamic } from 'solid-js/web'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -347,7 +348,7 @@ export function VariantA() {
               <button class={tabClass(tab() === 'stats')} onClick={() => setTab('stats')}>Stats</button>
             </div>
             <Show when={records().length} fallback={<EmptyHistory />}>
-              <Show when={tab() === 'list'} fallback={<StatsTable />}>
+              <Show when={tab() === 'list'} fallback={<StatsOverview />}>
                 <div>
                   <For each={records()}>{(r) => <Row record={r} onClick={() => setOpen(r)} />}</For>
                 </div>
@@ -372,32 +373,35 @@ export function VariantA() {
   )
 }
 
-function StatsTable() {
-  const s = () => stats()
+/** Big totals, then Grammar points weakest first. Rows are tappable only when `onPoint` is set. */
+function StatsOverview(props: { onPoint?: (id: string) => void }) {
+  const s = () => stats().overall
+  const points = () => stats().per.sort((a, b) => pct(a) - pct(b))
   return (
-    <div class="flex flex-col gap-4 text-sm">
-      <dl class="grid grid-cols-3 gap-2 text-center">
-        <div class="rounded-lg border p-3"><dt class="text-xs text-muted-foreground">Done</dt><dd class="text-xl tabular-nums">{s().overall.done}</dd></div>
-        <div class="rounded-lg border p-3"><dt class="text-xs text-muted-foreground">Pass rate</dt><dd class="text-xl tabular-nums">{pct(s().overall)}%</dd></div>
-        <div class="rounded-lg border p-3"><dt class="text-xs text-muted-foreground">Gave up</dt><dd class="text-xl tabular-nums">{s().overall.gaveUp}</dd></div>
-      </dl>
-      <table class="w-full text-left">
-        <thead class="text-xs text-muted-foreground">
-          <tr><th class="py-1 font-normal">Grammar point</th><th class="font-normal text-right">Done</th><th class="font-normal text-right">Pass</th><th class="font-normal text-right">Gave up</th></tr>
-        </thead>
-        <tbody>
-          <For each={s().per.sort((a, b) => b.done - a.done)}>
-            {(g) => (
-              <tr class="border-t">
-                <td lang="ja" class="py-2">{grammarLabel(g.id)}</td>
-                <td class="text-right tabular-nums">{g.done}</td>
-                <td class="text-right tabular-nums">{pct(g)}%</td>
-                <td class="text-right tabular-nums">{g.gaveUp}</td>
-              </tr>
-            )}
-          </For>
-        </tbody>
-      </table>
+    <div class="flex flex-col gap-6">
+      <div class="grid grid-cols-[2fr_1fr_1fr] gap-2">
+        <div class="row-span-2 flex flex-col justify-end rounded-2xl bg-primary p-4 text-primary-foreground">
+          <span class="text-4xl tabular-nums">{pct(s())}%</span>
+          <span class="text-xs opacity-80">pass rate</span>
+        </div>
+        <div class="col-span-2 rounded-2xl bg-muted p-3"><span class="text-2xl tabular-nums">{s().done}</span> <span class="text-xs text-muted-foreground">done</span></div>
+        <div class="col-span-2 rounded-2xl bg-muted p-3"><span class="text-2xl tabular-nums">{s().gaveUp}</span> <span class="text-xs text-muted-foreground">gave up</span></div>
+      </div>
+      <Section title="Grammar points, weakest first">
+        <For each={points()}>
+          {(g) => (
+            <Dynamic component={props.onPoint ? 'button' : 'div'} class="flex flex-col gap-1 py-2 text-left" onClick={() => props.onPoint?.(g.id)}>
+              <div class="flex items-center justify-between text-sm">
+                <span lang="ja">{grammarLabel(g.id)}</span>
+                <span class="tabular-nums text-muted-foreground">{pct(g)}% of {g.done} · {g.gaveUp} gave up{props.onPoint ? ' ›' : ''}</span>
+              </div>
+              <div class="h-1.5 overflow-hidden rounded-full bg-muted">
+                <div class="h-full bg-primary" style={{ width: `${pct(g)}%` }} />
+              </div>
+            </Dynamic>
+          )}
+        </For>
+      </Section>
     </div>
   )
 }
@@ -491,9 +495,6 @@ export function VariantC() {
   const [view, setView] = createSignal<'home' | 'history'>('home')
   const [point, setPoint] = createSignal<string | null>(null)
   const [open, setOpen] = createSignal<HistoryRecord | null>(null)
-  /** Weakest Grammar points first. */
-  const points = () => stats().per.sort((a, b) => pct(a) - pct(b))
-  const s = () => stats().overall
   return (
     <Page>
       <Switch>
@@ -527,29 +528,7 @@ export function VariantC() {
           <div class="flex flex-col gap-6">
             <RecordingOffNote />
             <Show when={records().length} fallback={<EmptyHistory />}>
-              <div class="grid grid-cols-[2fr_1fr_1fr] gap-2">
-                <div class="row-span-2 flex flex-col justify-end rounded-2xl bg-primary p-4 text-primary-foreground">
-                  <span class="text-4xl tabular-nums">{pct(s())}%</span>
-                  <span class="text-xs opacity-80">pass rate</span>
-                </div>
-                <div class="col-span-2 rounded-2xl bg-muted p-3"><span class="text-2xl tabular-nums">{s().done}</span> <span class="text-xs text-muted-foreground">done</span></div>
-                <div class="col-span-2 rounded-2xl bg-muted p-3"><span class="text-2xl tabular-nums">{s().gaveUp}</span> <span class="text-xs text-muted-foreground">gave up</span></div>
-              </div>
-              <Section title="Grammar points, weakest first">
-                <For each={points()}>
-                  {(g) => (
-                    <button class="flex flex-col gap-1 py-2 text-left" onClick={() => setPoint(g.id)}>
-                      <div class="flex items-center justify-between text-sm">
-                        <span lang="ja">{grammarLabel(g.id)}</span>
-                        <span class="tabular-nums text-muted-foreground">{pct(g)}% of {g.done} · {g.gaveUp} gave up ›</span>
-                      </div>
-                      <div class="h-1.5 overflow-hidden rounded-full bg-muted">
-                        <div class="h-full bg-primary" style={{ width: `${pct(g)}%` }} />
-                      </div>
-                    </button>
-                  )}
-                </For>
-              </Section>
+              <StatsOverview onPoint={setPoint} />
             </Show>
             <Section title="Your data">
               <p class="text-xs text-muted-foreground">
