@@ -41,10 +41,18 @@ Submitting an empty answer or `?`. It skips grading and shows the **Explanation*
 **Session**:
 An endless run of **Exercises** with a running count of passes. It ends when the page closes.
 
+**Attempt**:
+One submitted answer to an **Exercise**: a graded answer, or a **Give up**. An **Exercise** has at most two.
+
+**History**:
+The saved record of every finished **Exercise**, with its **Attempts** and outcome, kept only in this browser. It outlives the **Session**.
+_Avoid_: progress, log
+
 ## Relationships
 
 - An **Exercise** uses only **Known kanji**; its words come mostly from the **Word sample**.
 - Each **Exercise** allows one retry after a failed answer, then shows the **Explanation**.
+- An **Exercise** is in **History** only once it is finished: passed, failed after the retry, or given up.
 
 - A **Word sample** is drawn from the **Known words**; the **Known kanji** go with it in full.
 - Radicals are never **Known items**: they are not words and do not appear in sentences.
