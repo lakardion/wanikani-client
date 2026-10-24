@@ -132,17 +132,30 @@ export default function ExerciseLoop(props: { items: KnownItem[] }) {
   const [gradeError, setGradeError] = createSignal<Failure | null>(null)
   let run = 0
 
+  function request() {
+    const { sample, kanji } = wordSample(props.items)
+    return generateExercise({ grammarId: randomGrammar().id, sample, kanji })
+  }
+  /** The prefetch: at most one next **Exercise**, started when the current one shows. */
+  let prefetch: ReturnType<typeof request> | null = null
+
   async function generate() {
     const current = ++run
     setStep({ name: 'waiting' })
     setAnswer('')
     setGrade(null)
     setGradeError(null)
-    const { sample, kanji } = wordSample(props.items)
+    const pending = prefetch ?? request()
+    prefetch = null
     try {
-      const res = await generateExercise({ grammarId: randomGrammar().id, sample, kanji })
+      const res = await pending
       if (current !== run) return
-      if (res.ok) setStep({ name: 'answering', exercise: res.value })
+      if (res.ok) {
+        setStep({ name: 'answering', exercise: res.value })
+        prefetch = request()
+        /** Marks the rejection handled; `generate` still sees it when it awaits. */
+        prefetch.catch(() => {})
+      }
       else {
         if (res.error === 'daily_limit') setGenerationOff(true)
         setStep({ name: 'error', error: res.error })
