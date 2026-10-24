@@ -36,7 +36,7 @@ function Switcher() {
   onCleanup(() => window.removeEventListener('keydown', onKey))
   const chip = 'rounded-full px-2 py-1 text-[11px] leading-none bg-white/15'
   return (
-    <div class="fixed left-1/2 bottom-2 z-[100] flex max-w-[calc(100vw-1rem)] -translate-x-1/2 flex-col gap-1 rounded-2xl bg-black/85 p-2 font-mono text-white shadow-xl">
+    <div class="pointer-events-auto fixed left-1/2 bottom-2 z-[100] flex max-w-[calc(100vw-1rem)] -translate-x-1/2 flex-col gap-1 rounded-2xl bg-black/85 p-2 font-mono text-white shadow-xl">
       <div class="flex items-center justify-between gap-2 text-xs">
         <button class="px-2" onClick={() => setVariant(cycle(keys, variant(), -1))}>←</button>
         <span>
