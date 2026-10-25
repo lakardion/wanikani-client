@@ -1,9 +1,11 @@
+import { A } from '@solidjs/router'
 import { createSignal, Match, onMount, Show, Switch } from 'solid-js'
 import { WanikaniApiError } from 'wanikani-sdk'
 import ExerciseLoop from '~/components/ExerciseLoop'
+import { FROM_APP } from '~/components/History'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { Badge } from '~/components/ui/badge'
-import { Button } from '~/components/ui/button'
+import { Button, buttonVariants } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover'
 import { Spinner } from '~/components/ui/spinner'
@@ -202,6 +204,13 @@ const Gear = () => (
   </svg>
 )
 
+const Clock = () => (
+  <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+    <path d="M3 3v5h5M12 7v5l3 2" />
+  </svg>
+)
+
 export default function Home() {
   const [open, setOpen] = createSignal(false)
   onMount(() => void runSync())
@@ -209,16 +218,21 @@ export default function Home() {
     <div class="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-8">
       <header class="flex h-14 items-center justify-between">
         <span class="font-semibold">漢字 practice</span>
-        <Show when={apiKey()}>
-          <Popover open={open()} onOpenChange={setOpen} placement="bottom-end">
-            <PopoverTrigger as={Button} variant="ghost" size="icon" aria-label="Settings">
-              <Gear />
-            </PopoverTrigger>
-            <PopoverContent class="w-80">
-              <Settings onDone={() => setOpen(false)} />
-            </PopoverContent>
-          </Popover>
-        </Show>
+        <div class="flex items-center gap-1">
+          <A href="/history" state={FROM_APP} class={buttonVariants({ variant: 'ghost', size: 'icon' })} aria-label="History">
+            <Clock />
+          </A>
+          <Show when={apiKey()}>
+            <Popover open={open()} onOpenChange={setOpen} placement="bottom-end">
+              <PopoverTrigger as={Button} variant="ghost" size="icon" aria-label="Settings">
+                <Gear />
+              </PopoverTrigger>
+              <PopoverContent class="w-80">
+                <Settings onDone={() => setOpen(false)} />
+              </PopoverContent>
+            </Popover>
+          </Show>
+        </div>
       </header>
       <Show when={syncError()}>
         <Alert variant="destructive" class="mb-4 pr-10">
