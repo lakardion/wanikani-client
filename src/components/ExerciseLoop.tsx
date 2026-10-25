@@ -53,7 +53,7 @@ function Waiting(props: { first: boolean }) {
   )
 }
 
-const Section = (props: { title: string; children: JSX.Element }) => (
+export const Section = (props: { title: string; children: JSX.Element }) => (
   <section class="flex flex-col gap-2">
     <h3 class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{props.title}</h3>
     {props.children}
@@ -61,7 +61,7 @@ const Section = (props: { title: string; children: JSX.Element }) => (
 )
 
 /** Japanese text with furigana above each kanji run. */
-const Furigana = (props: { segments: Segment[] }) => (
+export const Furigana = (props: { segments: Segment[] }) => (
   <For each={props.segments}>
     {(s) => (
       <Show when={s.ruby} fallback={s.text}>
@@ -90,7 +90,7 @@ function Verdict(props: { grade: Grade | null }) {
   )
 }
 
-function Explanation(props: { exercise: Exercise }) {
+export function Explanation(props: { exercise: Exercise }) {
   const grammar = () => GRAMMAR.find((g) => g.id === props.exercise.grammarId)
   return (
     <div class="flex flex-col gap-6 overflow-y-auto px-4 pb-4">
@@ -112,7 +112,7 @@ function Explanation(props: { exercise: Exercise }) {
         <div class="flex flex-col gap-1 text-sm">
           <p>
             <span lang="ja" class="font-semibold">
-              {grammar()?.pattern}
+              {grammar()?.pattern ?? props.exercise.grammarId}
             </span>{' '}
             {grammar()?.meaning}
           </p>
