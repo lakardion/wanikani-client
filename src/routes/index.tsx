@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover
 import { Spinner } from '~/components/ui/spinner'
 import { TextField, TextFieldDescription, TextFieldInput, TextFieldLabel } from '~/components/ui/text-field'
 import { client } from '~/lib/client'
+import { getAll, lastExportAt, persisted, recordingOn, setRecordingOn } from '~/lib/history'
 import {
   clearKnownItems,
   countKnown,
@@ -104,6 +105,51 @@ function KeyForm(props: { onSave?: () => void }) {
   )
 }
 
+function Toggle(props: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label class="flex items-center justify-between gap-2">
+      <span>{props.label}</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={props.checked}
+        class={`relative h-6 w-10 rounded-full transition-colors ${props.checked ? 'bg-primary' : 'bg-muted'}`}
+        onClick={() => props.onChange(!props.checked)}
+      >
+        <span class={`absolute top-0.5 size-5 rounded-full bg-background shadow transition-all ${props.checked ? 'left-[1.125rem]' : 'left-0.5'}`} />
+      </button>
+    </label>
+  )
+}
+
+/** Reads the record count and the storage state each time the popover opens. */
+function HistorySettings() {
+  const [saved, setSaved] = createSignal(0)
+  const [persistent, setPersistent] = createSignal(false)
+  onMount(() => {
+    getAll().then((r) => setSaved(r.length), () => {})
+    void persisted().then(setPersistent)
+  })
+  const lastExport = () => {
+    const at = lastExportAt()
+    return at ? new Date(at).toLocaleString() : 'never'
+  }
+  return (
+    <div class="flex flex-col gap-3">
+      <h4 class="text-xs font-medium uppercase tracking-wide text-muted-foreground">History</h4>
+      <Toggle label="Record History" checked={recordingOn()} onChange={setRecordingOn} />
+      <Show when={!recordingOn()}>
+        <p class="text-xs text-muted-foreground">New Exercises are not recorded. The {fmt(saved())} saved ones stay.</p>
+      </Show>
+      <div class="text-xs text-muted-foreground">
+        {fmt(saved())} Exercises · Storage: {persistent() ? 'persistent' : 'not persistent'}
+        <br />
+        Last export: {lastExport()}
+      </div>
+    </div>
+  )
+}
+
 function Settings(props: { onDone: () => void }) {
   const [changing, setChanging] = createSignal(false)
   return (
@@ -143,6 +189,8 @@ function Settings(props: { onDone: () => void }) {
         <KeyForm onSave={props.onDone} />
       </Show>
       <p class="text-xs text-muted-foreground">Changing or clearing the key also deletes the stored items.</p>
+      <hr />
+      <HistorySettings />
     </div>
   )
 }
