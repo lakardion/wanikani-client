@@ -42,10 +42,10 @@ Submitting an empty answer or `?`. It skips grading and shows the **Explanation*
 An endless run of **Exercises** with a running count of passes. It ends when the page closes.
 
 **Attempt**:
-One submitted answer to an **Exercise**: a graded answer, or a **Give up**. An **Exercise** has at most two.
+One submitted answer to an **Exercise**: a graded answer with its score and feedback, or a **Give up**, which has no score. An **Exercise** has at most two.
 
 **History**:
-The saved record of every finished **Exercise**, with its **Attempts** and outcome, kept only in this browser. It outlives the **Session**.
+The saved record of every finished **Exercise**, with its **Attempts** and outcome. An **Exercise** is finished when it reaches its **Explanation**. It is kept only in this browser and belongs to the browser, not to the WaniKani key. It outlives the **Session**.
 _Avoid_: progress, log
 
 ## Relationships
