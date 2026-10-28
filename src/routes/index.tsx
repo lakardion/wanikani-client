@@ -165,6 +165,7 @@ function HistorySettings() {
   const [saved, setSaved] = createSignal(0);
   const [persistent, setPersistent] = createSignal(false);
   const [confirming, setConfirming] = createSignal(false);
+  const [deleteFailed, setDeleteFailed] = createSignal(false);
   onMount(() => {
     getAll().then(
       (r) => setSaved(r.length),
@@ -172,11 +173,13 @@ function HistorySettings() {
     );
     void persisted().then(setPersistent);
   });
-  /** Keeps the confirm step open when the delete fails, so the user can try again. */
+  /** Keeps the confirm step open with an error when the delete fails, so the user can try again. */
   async function confirmDelete() {
+    setDeleteFailed(false);
     try {
       await deleteHistory();
     } catch {
+      setDeleteFailed(true);
       return;
     }
     setSaved(0);
@@ -214,8 +217,15 @@ function HistorySettings() {
             Delete {fmt(saved())} Exercises from this browser? Export first to keep a copy. This
             cannot be undone.
           </p>
+          <Show when={deleteFailed()}>
+            <p class="text-xs text-destructive">The browser could not delete History. Try again.</p>
+          </Show>
           <div class="grid grid-cols-2 gap-2">
-            <Button variant="outline" size="sm" onClick={() => setConfirming(false)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => (setConfirming(false), setDeleteFailed(false))}
+            >
               Cancel
             </Button>
             <Button variant="destructive" size="sm" onClick={confirmDelete}>

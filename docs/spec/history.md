@@ -49,7 +49,7 @@ type HistoryRecord = {
 | `wanikani.history.lastExportAt`        | ISO time of the last export                        | absent ("never") |
 | `wanikani.history.reminderDismissedAt` | ISO time of the last × on the export reminder      | absent           |
 
-**Delete history** clears the store, `lastExportAt` and `reminderDismissedAt`. It keeps `on` and `warningDismissed`.
+**Delete history** clears the store, the [write queue](#recording), `lastExportAt` and `reminderDismissedAt`. It keeps `on` and `warningDismissed`.
 
 **Stats** are computed from `getAll()` each time the History page opens. Nothing is stored.
 
@@ -83,6 +83,7 @@ Decided in [File export and import on Brave Android](https://github.com/lakardio
 **Import:** an `<input type="file" accept=".json,application/json">`. Read with `JSON.parse(await file.text())`, then validate with a zod schema of the envelope and the records.
 
 - The import is all or nothing. Any parse or validation failure imports nothing.
+- The new records are written in one transaction. A failed write, including a `QuotaExceededError`, imports nothing.
 - A `version` newer than the app knows imports nothing.
 - An older `version` runs through the upgrade chain.
 - Merge by `id`: a record that is already present is kept, and the imported one is skipped. Importing the same file again imports 0.
@@ -118,6 +119,7 @@ A History icon button sits next to the settings cog and links to `/history`. It 
   - Success: "Imported N, skipped M (already present)."
   - Invalid file: "This file is not a History export. Nothing was imported." (destructive)
   - Newer version: "This file comes from a newer version of the app. Reload the app, then import again. Nothing was imported." (destructive)
+  - Write failure: "The browser could not save the imported Exercises. Nothing was imported." (destructive)
 - When recording is off and records exist, a note says "History is off. New Exercises are not recorded."
 - Two tabs: **Exercises (N)** and **Stats**.
 - With no records, both tabs show an empty state: "No Exercises yet." (or "History is off." when recording is off), and "You can import an export from another device."
@@ -150,6 +152,7 @@ A History block below the existing WaniKani block, after an `<hr />`:
 - When the switch is off: "New Exercises are not recorded. The N saved ones stay."
 - "N Exercises · Storage: persistent / not persistent" (from `navigator.storage.persisted()`) and "Last export: <date> / never".
 - **Delete history**, a destructive button. It is disabled when no records exist. A tap shows an inline confirm step: "Delete N Exercises from this browser? Export first to keep a copy. This cannot be undone." [Cancel] [Delete].
+- If the delete fails, nothing changes and the confirm step stays open with one destructive line above the buttons: "The browser could not delete History. Try again." The next tap on Delete hides the line. Cancel closes the confirm step and clears the line.
 
 The popover shows only with a WaniKani key, as in v1. Without a key, the toggle and **Delete history** are not reachable; the History page still is.
 
