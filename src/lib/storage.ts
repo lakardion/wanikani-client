@@ -1,17 +1,17 @@
-const API_KEY_STORAGE = 'wanikani.apiKey'
-const METHOD_STORAGE = 'wanikani.selectedMethod'
+const API_KEY_STORAGE = "wanikani.apiKey";
+const METHOD_STORAGE = "wanikani.selectedMethod";
 
 export function loadApiKey(): string {
   try {
-    return localStorage.getItem(API_KEY_STORAGE) ?? ''
+    return localStorage.getItem(API_KEY_STORAGE) ?? "";
   } catch {
-    return ''
+    return "";
   }
 }
 
 export function saveApiKey(value: string): void {
   try {
-    localStorage.setItem(API_KEY_STORAGE, value)
+    localStorage.setItem(API_KEY_STORAGE, value);
   } catch {
     /* ignore */
   }
@@ -19,15 +19,15 @@ export function saveApiKey(value: string): void {
 
 export function loadSelectedMethod(): string | null {
   try {
-    return localStorage.getItem(METHOD_STORAGE)
+    return localStorage.getItem(METHOD_STORAGE);
   } catch {
-    return null
+    return null;
   }
 }
 
 export function saveSelectedMethod(value: string): void {
   try {
-    localStorage.setItem(METHOD_STORAGE, value)
+    localStorage.setItem(METHOD_STORAGE, value);
   } catch {
     /* ignore */
   }

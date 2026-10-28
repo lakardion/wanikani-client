@@ -19,12 +19,15 @@ One record per finished **Exercise**. Decided in [History record shape and expor
 
 ```ts
 type HistoryRecord = {
-  id: string            // crypto.randomUUID(), set at finish
-  finishedAt: string    // ISO time of the finish
-  outcome: 'pass' | 'fail' | 'give_up'
-  exercise: Exercise    // the type from src/server/exercise.ts, as is, furigana included
-  attempts: ({ answer: string; score: number; feedback: string; pass: boolean } | { answer: string; giveUp: true })[]
-}
+  id: string; // crypto.randomUUID(), set at finish
+  finishedAt: string; // ISO time of the finish
+  outcome: "pass" | "fail" | "give_up";
+  exercise: Exercise; // the type from src/server/exercise.ts, as is, furigana included
+  attempts: (
+    | { answer: string; score: number; feedback: string; pass: boolean }
+    | { answer: string; giveUp: true }
+  )[];
+};
 ```
 
 - `outcome` is fixed at finish: `pass` when the last graded **Attempt** passed, `give_up` when the last **Attempt** is a **Give up** (a fail then a **Give up** is `give_up`), else `fail`.
@@ -39,12 +42,12 @@ type HistoryRecord = {
 
 **Flags** in localStorage:
 
-| Key | Value | Default |
-|---|---|---|
-| `wanikani.history.on` | `"true"` or `"false"` | on |
-| `wanikani.history.warningDismissed` | `"true"` when the first-open warning was dismissed | absent |
-| `wanikani.history.lastExportAt` | ISO time of the last export | absent ("never") |
-| `wanikani.history.reminderDismissedAt` | ISO time of the last × on the export reminder | absent |
+| Key                                    | Value                                              | Default          |
+| -------------------------------------- | -------------------------------------------------- | ---------------- |
+| `wanikani.history.on`                  | `"true"` or `"false"`                              | on               |
+| `wanikani.history.warningDismissed`    | `"true"` when the first-open warning was dismissed | absent           |
+| `wanikani.history.lastExportAt`        | ISO time of the last export                        | absent ("never") |
+| `wanikani.history.reminderDismissedAt` | ISO time of the last × on the export reminder      | absent           |
 
 **Delete history** clears the store, `lastExportAt` and `reminderDismissedAt`. It keeps `on` and `warningDismissed`.
 

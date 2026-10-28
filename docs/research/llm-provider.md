@@ -13,16 +13,16 @@ Research for lakardion/wanikani-client#4. All prices, model names, and limits co
 
 ## 1. Current lineups (small/cheap tier) and prices
 
-| Provider | Model ID | Input | Output | Notes | Source |
-| --- | --- | --- | --- | --- | --- |
-| Google | `gemini-3.5-flash-lite` | $0.30 | $2.50 | Stable; "fastest, most cost-effective 3.5 model"; free tier: yes | [pricing](https://ai.google.dev/gemini-api/docs/pricing), [models](https://ai.google.dev/gemini-api/docs/models) |
-| Google | `gemini-3.8-flash` | $0.75 → $1.50 from 2027-01-01 | $3.75 → $7.50 from 2027-01-01 | Stable, newest Flash; free tier: yes | [pricing](https://ai.google.dev/gemini-api/docs/pricing) |
-| Google | `gemini-3.1-flash-lite` | $0.25 | $1.50 | Stable; free tier: yes | [pricing](https://ai.google.dev/gemini-api/docs/pricing) |
-| OpenAI | `gpt-6-luna` | $0.10 (cached $0.01) | $0.50 | "Our most efficient model for focused, high-volume tasks"; reasoning effort `none`…`max` | [pricing](https://developers.openai.com/api/docs/pricing), [models](https://developers.openai.com/api/docs/models) |
-| OpenAI | `gpt-5.6-luna` | $0.20 | $1.20 | Previous generation | [pricing](https://developers.openai.com/api/docs/pricing) |
-| OpenAI | `gpt-6.1-sol` | $2.00 | $10.00 | Mid tier, for comparison | [pricing](https://developers.openai.com/api/docs/pricing) |
-| Anthropic | `claude-haiku-5-5` | $0.10 (prompts ≤100k tokens) | $0.50 | Latency "Fastest"; adaptive thinking, default effort `medium` | [pricing](https://platform.claude.com/docs/en/about-claude/pricing), [models](https://platform.claude.com/docs/en/about-claude/models/overview) |
-| Anthropic | `claude-sonnet-5-5` | $2.00 | $10.00 | Latency "Fast", for comparison | same |
+| Provider  | Model ID                | Input                         | Output                        | Notes                                                                                    | Source                                                                                                                                          |
+| --------- | ----------------------- | ----------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Google    | `gemini-3.5-flash-lite` | $0.30                         | $2.50                         | Stable; "fastest, most cost-effective 3.5 model"; free tier: yes                         | [pricing](https://ai.google.dev/gemini-api/docs/pricing), [models](https://ai.google.dev/gemini-api/docs/models)                                |
+| Google    | `gemini-3.8-flash`      | $0.75 → $1.50 from 2027-01-01 | $3.75 → $7.50 from 2027-01-01 | Stable, newest Flash; free tier: yes                                                     | [pricing](https://ai.google.dev/gemini-api/docs/pricing)                                                                                        |
+| Google    | `gemini-3.1-flash-lite` | $0.25                         | $1.50                         | Stable; free tier: yes                                                                   | [pricing](https://ai.google.dev/gemini-api/docs/pricing)                                                                                        |
+| OpenAI    | `gpt-6-luna`            | $0.10 (cached $0.01)          | $0.50                         | "Our most efficient model for focused, high-volume tasks"; reasoning effort `none`…`max` | [pricing](https://developers.openai.com/api/docs/pricing), [models](https://developers.openai.com/api/docs/models)                              |
+| OpenAI    | `gpt-5.6-luna`          | $0.20                         | $1.20                         | Previous generation                                                                      | [pricing](https://developers.openai.com/api/docs/pricing)                                                                                       |
+| OpenAI    | `gpt-6.1-sol`           | $2.00                         | $10.00                        | Mid tier, for comparison                                                                 | [pricing](https://developers.openai.com/api/docs/pricing)                                                                                       |
+| Anthropic | `claude-haiku-5-5`      | $0.10 (prompts ≤100k tokens)  | $0.50                         | Latency "Fastest"; adaptive thinking, default effort `medium`                            | [pricing](https://platform.claude.com/docs/en/about-claude/pricing), [models](https://platform.claude.com/docs/en/about-claude/models/overview) |
+| Anthropic | `claude-sonnet-5-5`     | $2.00                         | $10.00                        | Latency "Fast", for comparison                                                           | same                                                                                                                                            |
 
 Thinking tokens bill as output on all three. Gemini: "response pricing is the sum of output tokens and thinking tokens"; `gemini-3.8-flash` thinks at `medium` by default (lowest is `low`), `gemini-3.5-flash-lite` at `minimal` ([thinking](https://ai.google.dev/gemini-api/docs/thinking)). OpenAI `gpt-6-luna` accepts reasoning effort `none` ([models](https://developers.openai.com/api/docs/models)). Set the lowest effort level for both tasks, and raise it only if the eval needs it.
 
@@ -30,13 +30,13 @@ Thinking tokens bill as output on all three. Gemini: "response pricing is the su
 
 **Cost model (assumption):** 25 generations/day at ~10k input tokens (known-vocab list of ~2,000 items plus the prompt) and ~1k output tokens including thinking; 25 gradings/day at ~1k input and ~300 output. That gives ~8.25M input and ~1M output tokens per month.
 
-| Model | Est. monthly cost (paid) |
-| --- | --- |
-| `gpt-6-luna` / `claude-haiku-5-5` | ~$1.31 |
-| `gpt-5.6-luna` | ~$2.82 |
-| `gemini-3.5-flash-lite` | ~$4.91 |
-| `gemini-3.8-flash` | ~$9.84 (~$19.69 after the 2027 price change) |
-| `claude-sonnet-5-5` / `gpt-6.1-sol` | ~$26.25 |
+| Model                               | Est. monthly cost (paid)                     |
+| ----------------------------------- | -------------------------------------------- |
+| `gpt-6-luna` / `claude-haiku-5-5`   | ~$1.31                                       |
+| `gpt-5.6-luna`                      | ~$2.82                                       |
+| `gemini-3.5-flash-lite`             | ~$4.91                                       |
+| `gemini-3.8-flash`                  | ~$9.84 (~$19.69 after the 2027 price change) |
+| `claude-sonnet-5-5` / `gpt-6.1-sol` | ~$26.25                                      |
 
 The known-vocab list dominates input cost. If #6 sends a smaller list (for example, a sample per exercise), the costs fall in proportion.
 
@@ -51,14 +51,14 @@ The known-vocab list dominates input cost. If #6 sends a smaller list (for examp
 
 ## 3. Structured output (JSON Schema enforcement)
 
-| | Gemini | OpenAI | Anthropic |
-| --- | --- | --- | --- |
-| Mechanism | `responseMimeType: "application/json"` + `responseJsonSchema` in `@google/genai` `generateContent` config (field present in `@google/genai@2.28.0` typings) | Responses API `text.format: { type: "json_schema", strict: true }` | `output_config.format: { type: "json_schema", schema }`; also `strict: true` on tools |
-| Guarantee | "output is syntactically correct JSON, always validate values in your application" | "ensures the model will always generate responses that adhere to your supplied JSON Schema" | "guarantee schema-compliant responses through constrained decoding" |
-| Numeric range (score 0–100) | `minimum`/`maximum` listed as supported | `minimum`/`maximum` supported | **Not supported** (400 error); the Zod helper strips them into descriptions and re-validates |
-| Other rules | Subset of JSON Schema; "very large or deeply nested schemas may be rejected" | All fields `required`; `additionalProperties: false`; root must be an object | `additionalProperties: false`; no `minLength`/`maxLength`; enum casing not guaranteed |
-| Failure cases | Semantically wrong values | `refusal` field; incomplete at `max_output_tokens` | `stop_reason: "refusal"` or `"max_tokens"` can break the schema |
-| TS helper | none needed (pass JSON Schema) | `zodTextFormat` + `responses.parse` | `zodOutputFormat` + `messages.parse` |
+|                             | Gemini                                                                                                                                                      | OpenAI                                                                                      | Anthropic                                                                                    |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Mechanism                   | `responseMimeType: "application/json"` + `responseJsonSchema` in `@google/genai` `generateContent` config (field present in `@google/genai@2.28.0` typings) | Responses API `text.format: { type: "json_schema", strict: true }`                          | `output_config.format: { type: "json_schema", schema }`; also `strict: true` on tools        |
+| Guarantee                   | "output is syntactically correct JSON, always validate values in your application"                                                                          | "ensures the model will always generate responses that adhere to your supplied JSON Schema" | "guarantee schema-compliant responses through constrained decoding"                          |
+| Numeric range (score 0–100) | `minimum`/`maximum` listed as supported                                                                                                                     | `minimum`/`maximum` supported                                                               | **Not supported** (400 error); the Zod helper strips them into descriptions and re-validates |
+| Other rules                 | Subset of JSON Schema; "very large or deeply nested schemas may be rejected"                                                                                | All fields `required`; `additionalProperties: false`; root must be an object                | `additionalProperties: false`; no `minLength`/`maxLength`; enum casing not guaranteed        |
+| Failure cases               | Semantically wrong values                                                                                                                                   | `refusal` field; incomplete at `max_output_tokens`                                          | `stop_reason: "refusal"` or `"max_tokens"` can break the schema                              |
+| TS helper                   | none needed (pass JSON Schema)                                                                                                                              | `zodTextFormat` + `responses.parse`                                                         | `zodOutputFormat` + `messages.parse`                                                         |
 
 Sources: [Gemini structured output](https://ai.google.dev/gemini-api/docs/structured-output), [OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs), [Anthropic structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs).
 
@@ -79,14 +79,14 @@ Sources: [Gemini structured output](https://ai.google.dev/gemini-api/docs/struct
 
 ## 6. Latency and SDKs on Vercel serverless
 
-| Package | Latest | Node engine | Source |
-| --- | --- | --- | --- |
-| `@google/genai` | 2.28.0 | >=20 | [npm](https://www.npmjs.com/package/@google/genai) |
-| `openai` | 7.32.0 | >=22 | [npm](https://www.npmjs.com/package/openai) |
-| `@anthropic-ai/sdk` | 0.133.0 | none declared | [npm](https://www.npmjs.com/package/@anthropic-ai/sdk) |
-| `ai` (Vercel AI SDK) | 7.0.137 | >=22 | [npm](https://www.npmjs.com/package/ai) |
-| `@ai-sdk/google` / `@ai-sdk/openai` / `@ai-sdk/anthropic` | 4.0.93 / 4.0.91 / 4.0.78 | >=22 | npm |
-| `zod` | 4.6.5 | none declared | [npm](https://www.npmjs.com/package/zod) |
+| Package                                                   | Latest                   | Node engine   | Source                                                 |
+| --------------------------------------------------------- | ------------------------ | ------------- | ------------------------------------------------------ |
+| `@google/genai`                                           | 2.28.0                   | >=20          | [npm](https://www.npmjs.com/package/@google/genai)     |
+| `openai`                                                  | 7.32.0                   | >=22          | [npm](https://www.npmjs.com/package/openai)            |
+| `@anthropic-ai/sdk`                                       | 0.133.0                  | none declared | [npm](https://www.npmjs.com/package/@anthropic-ai/sdk) |
+| `ai` (Vercel AI SDK)                                      | 7.0.137                  | >=22          | [npm](https://www.npmjs.com/package/ai)                |
+| `@ai-sdk/google` / `@ai-sdk/openai` / `@ai-sdk/anthropic` | 4.0.93 / 4.0.91 / 4.0.78 | >=22          | npm                                                    |
+| `zod`                                                     | 4.6.5                    | none declared | [npm](https://www.npmjs.com/package/zod)               |
 
 - All are actively maintained (each published within the last week) and run on Node 24, Vercel's default (see `docs/research/solidstart-vercel.md`).
 - Vendors state latency only in relative terms: Haiku 5.5 is "Fastest" in Anthropic's lineup, `gemini-3.5-flash-lite` is the "fastest" 3.5 model, and `gpt-6-luna` is "most efficient". For a ~1k-token response, any of them finishes far inside the 300s Hobby function limit. **Do not stream:** the JSON payload is small, streaming holds the invocation open, and partial objects cannot be validated ([AI SDK structured data](https://ai-sdk.dev/docs/ai-sdk-core/generating-structured-data)).

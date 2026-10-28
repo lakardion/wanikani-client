@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "jsx-a11y", "vitest"],
+  "jsPlugins": ["eslint-plugin-solid"],
+  "categories": { "correctness": "error", "suspicious": "warn" },
+  "env": { "browser": true, "node": true },
+  "settings": { "jsx-a11y": { "attributes": { "for": ["for"] } } },
+  "ignorePatterns": [".claude/**", "prototypes/**"],
+  "rules": {
+    "import/no-unassigned-import": ["warn", { "allow": ["**/*.css"] }],
+    "no-unassigned-vars": "off",
+    "unicorn/prefer-add-event-listener": "off",
+    "solid/components-return-once": "warn",
+    "solid/event-handlers": "warn",
+    "solid/imports": "warn",
+    "solid/jsx-no-duplicate-props": "error",
+    "solid/jsx-no-script-url": "error",
+    "solid/jsx-no-undef": "error",
+    "solid/jsx-uses-vars": "error",
+    "solid/no-destructure": "error",
+    "solid/no-innerhtml": "error",
+    "solid/no-react-deps": "warn",
+    "solid/no-react-specific-props": "warn",
+    "solid/no-unknown-namespaces": "error",
+    "solid/prefer-for": "error",
+    "solid/reactivity": "warn",
+    "solid/self-closing-comp": "warn",
+    "solid/style-prop": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["src/components/ui/**"],
+      "rules": { "jsx-a11y/heading-has-content": "off" }
+    }
+  ]
+}

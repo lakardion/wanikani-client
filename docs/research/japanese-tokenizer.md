@@ -16,19 +16,19 @@ Do not use UniDic for readings unless you also need its better lexicon. It uses 
 
 Package facts come from the npm registry (`npm view <pkg>`) and the GitHub API (`gh api repos/<repo>`), read on 2026-10-22.
 
-| Package | Latest | Last publish | Repo last push | Dictionary | Install size | Dict loading |
-| --- | --- | --- | --- | --- | --- | --- |
-| `kuromoji` | 0.1.2 | 2018-03-19 | 2023-11-12 (`takuyaa/kuromoji.js`) | IPADIC (`mecab-ipadic-2.7.0-20070801`) | 41.3 MB unpacked, `dict/` 18 MB | Filesystem, gzipped `.dat.gz` files, path given at runtime |
-| `@sglkc/kuromoji` | 1.1.0 | 2023-09-17 | 2023-09-17 (repo now `miseya/kuromoji.js`) | Same IPADIC | 18.3 MB, `dict/` 19 MB | Filesystem, same as `kuromoji`; uses `fflate` in place of `zlibjs` |
-| `@patdx/kuromoji` | 1.0.4 | 2024-11-21 | 2025-04-25 | Same IPADIC | 17.9 MB | ESM build with `./node` and `./browser` exports |
-| `kuromoji.js` (f1w3) | 0.1.6 | 2025-01-11 | n/a | Same IPADIC | 19.0 MB | Filesystem |
-| `kuromojin` | 3.0.1 | 2025-04-13 | 2025-04-13 | Wrapper on `kuromoji@0.1.2` | 17.7 KB plus `kuromoji` | Adds a tokenizer singleton and LRU cache; no own dictionary |
-| `lindera-wasm-ipadic-nodejs` | 2.3.4 | 2026-03-24 | 2026-10-22 (`lindera/lindera`) | IPADIC (`mecab-ipadic-2.7.0-20250920` in current source) | 17.8 MB (one 17.75 MB `.wasm`) | **Embedded** in the `.wasm`; JS glue reads the `.wasm` with `readFileSync(\`${__dirname}/lindera_wasm_bg.wasm\`)` |
-| `lindera-wasm-unidic-nodejs` | 2.3.4 | 2026-03-24 | same | UniDic | 54.0 MB | Embedded |
-| `lindera-wasm` | 6.2.0 | 2026-09-26 | same | None | 1.9 MB | Web target only. Dictionary is loaded from bytes or downloaded to OPFS at runtime. Not a fit for a Node function without extra work. |
-| `sudachi-wasm333` | 1.0.4 | 2026-04-14 | 2026-10-21 | SudachiDict (small by default) | 125.3 MB | Dynamic path or URL; 5 GitHub stars, one maintainer |
-| `@hiogawa/sudachi.wasm` | 1.0.1 | 2022-10-10 | n/a | SudachiDict, embedded | 1.3 MB | Stale |
-| `mecab-wasm` | 1.0.3 | 2022-05-09 | n/a | IPADIC | 56.9 MB | Stale |
+| Package                      | Latest | Last publish | Repo last push                             | Dictionary                                               | Install size                    | Dict loading                                                                                                                         |
+| ---------------------------- | ------ | ------------ | ------------------------------------------ | -------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `kuromoji`                   | 0.1.2  | 2018-03-19   | 2023-11-12 (`takuyaa/kuromoji.js`)         | IPADIC (`mecab-ipadic-2.7.0-20070801`)                   | 41.3 MB unpacked, `dict/` 18 MB | Filesystem, gzipped `.dat.gz` files, path given at runtime                                                                           |
+| `@sglkc/kuromoji`            | 1.1.0  | 2023-09-17   | 2023-09-17 (repo now `miseya/kuromoji.js`) | Same IPADIC                                              | 18.3 MB, `dict/` 19 MB          | Filesystem, same as `kuromoji`; uses `fflate` in place of `zlibjs`                                                                   |
+| `@patdx/kuromoji`            | 1.0.4  | 2024-11-21   | 2025-04-25                                 | Same IPADIC                                              | 17.9 MB                         | ESM build with `./node` and `./browser` exports                                                                                      |
+| `kuromoji.js` (f1w3)         | 0.1.6  | 2025-01-11   | n/a                                        | Same IPADIC                                              | 19.0 MB                         | Filesystem                                                                                                                           |
+| `kuromojin`                  | 3.0.1  | 2025-04-13   | 2025-04-13                                 | Wrapper on `kuromoji@0.1.2`                              | 17.7 KB plus `kuromoji`         | Adds a tokenizer singleton and LRU cache; no own dictionary                                                                          |
+| `lindera-wasm-ipadic-nodejs` | 2.3.4  | 2026-03-24   | 2026-10-22 (`lindera/lindera`)             | IPADIC (`mecab-ipadic-2.7.0-20250920` in current source) | 17.8 MB (one 17.75 MB `.wasm`)  | **Embedded** in the `.wasm`; JS glue reads the `.wasm` with `readFileSync(\`${__dirname}/lindera_wasm_bg.wasm\`)`                    |
+| `lindera-wasm-unidic-nodejs` | 2.3.4  | 2026-03-24   | same                                       | UniDic                                                   | 54.0 MB                         | Embedded                                                                                                                             |
+| `lindera-wasm`               | 6.2.0  | 2026-09-26   | same                                       | None                                                     | 1.9 MB                          | Web target only. Dictionary is loaded from bytes or downloaded to OPFS at runtime. Not a fit for a Node function without extra work. |
+| `sudachi-wasm333`            | 1.0.4  | 2026-04-14   | 2026-10-21                                 | SudachiDict (small by default)                           | 125.3 MB                        | Dynamic path or URL; 5 GitHub stars, one maintainer                                                                                  |
+| `@hiogawa/sudachi.wasm`      | 1.0.1  | 2022-10-10   | n/a                                        | SudachiDict, embedded                                    | 1.3 MB                          | Stale                                                                                                                                |
+| `mecab-wasm`                 | 1.0.3  | 2022-05-09   | n/a                                        | IPADIC                                                   | 56.9 MB                         | Stale                                                                                                                                |
 
 Notes:
 
@@ -40,12 +40,12 @@ Notes:
 
 Local test on macOS, Node 22.15.0 (not Node 24), one cold process per package. Script: build the tokenizer, then tokenize four sentences.
 
-| Package | Tokenizer build time | Process RSS after build |
-| --- | --- | --- |
-| `kuromoji` 0.1.2 | 241 ms | 425 MB |
-| `@sglkc/kuromoji` 1.1.0 | 223 ms | 430 MB |
-| `lindera-wasm-ipadic-nodejs` 2.3.4 | 226 ms | 234 MB |
-| `lindera-wasm-unidic-nodejs` 2.3.4 | 769 ms | 693 MB |
+| Package                            | Tokenizer build time | Process RSS after build |
+| ---------------------------------- | -------------------- | ----------------------- |
+| `kuromoji` 0.1.2                   | 241 ms               | 425 MB                  |
+| `@sglkc/kuromoji` 1.1.0            | 223 ms               | 430 MB                  |
+| `lindera-wasm-ipadic-nodejs` 2.3.4 | 226 ms               | 234 MB                  |
+| `lindera-wasm-unidic-nodejs` 2.3.4 | 769 ms               | 693 MB                  |
 
 No project documents a cold-start time. A Vercel vCPU is slower than a laptop core, so expect higher numbers in production. All four fit in the Hobby memory limit of 2 GB.
 
@@ -53,13 +53,13 @@ No project documents a cold-start time. A Vercel vCPU is slower than a laptop co
 
 Test output (surface/reading):
 
-| Sentence | IPADIC (kuromoji and Lindera, identical) | Lindera UniDic |
-| --- | --- | --- |
-| 三人で東京スカイツリーに行きました。 | 三/サン 人/ニン で 東京/トウキョウ スカイ ツリー に 行き/イキ まし た | same split; 行き lemma reading イク |
-| 昨日、図書館で日本語の本を二冊借りた。 | 図書館/トショカン 日本語/ニホンゴ 二/ニ 冊/サツ | 図書/トショ 館/カン, 日本/**ニッポン** 語/ゴ |
-| 国際連合安全保障理事会が開かれた。 | 国際 連合 安全 保障 理事 会 (six tokens) | same split |
-| 一人で七時に起きて、八百屋へ行った。 | 一/**イチ** 人/**ニン**, 行っ/イッ | 一人/**ヒトリ**, 行っ/イク (lemma) |
-| 三人で行った (via Nitro build) | 行っ/**オコナッ** | not tested |
+| Sentence                               | IPADIC (kuromoji and Lindera, identical)                              | Lindera UniDic                               |
+| -------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------- |
+| 三人で東京スカイツリーに行きました。   | 三/サン 人/ニン で 東京/トウキョウ スカイ ツリー に 行き/イキ まし た | same split; 行き lemma reading イク          |
+| 昨日、図書館で日本語の本を二冊借りた。 | 図書館/トショカン 日本語/ニホンゴ 二/ニ 冊/サツ                       | 図書/トショ 館/カン, 日本/**ニッポン** 語/ゴ |
+| 国際連合安全保障理事会が開かれた。     | 国際 連合 安全 保障 理事 会 (six tokens)                              | same split                                   |
+| 一人で七時に起きて、八百屋へ行った。   | 一/**イチ** 人/**ニン**, 行っ/イッ                                    | 一人/**ヒトリ**, 行っ/イク (lemma)           |
+| 三人で行った (via Nitro build)         | 行っ/**オコナッ**                                                     | not tested                                   |
 
 Findings:
 

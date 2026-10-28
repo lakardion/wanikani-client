@@ -16,12 +16,12 @@ Research for lakardion/wanikani-client#3. Builds on `docs/research/solidstart-ve
 
 ## 1. Library options
 
-| Option | Current state | Fit for one provider, one user |
-| --- | --- | --- |
-| **Hand-rolled OAuth 2.0 + PKCE** | Uses Web/Node built-ins only | Best fit. Two routes, one token request, no dependency. |
-| **Arctic** (`arctic@3.7.0`) | **Deprecated on npm** ("Package no longer supported"). Last release 2025-05-21. README: "Arctic was deprecated on July 2026." | Do not adopt. |
-| **Auth.js** (`@auth/core@0.41.3`, `@auth/solid-start@0.19.3`) | SolidStart integration listed as "Experimental release". `@auth/solid-start` peers on `solid-start ^0.2.14` (the pre-1.0 package), not `@solidjs/start`. The community `@solid-mediakit/auth@3.1.3` peers on `@solidjs/start ^1` + `vinxi` (v1 only). Auth.js "is now part of Better Auth". | Poor fit for v2. |
-| **Better Auth** (`better-auth@1.7.7`) | Maintained. Has a `better-auth/solid-start` handler. Turns on stateless mode when no database is configured. | Works, but large for this: zod, kysely, jose and more. Uses several cookies. The allowlist needs a custom hook. |
+| Option                                                        | Current state                                                                                                                                                                                                                                                                               | Fit for one provider, one user                                                                                  |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Hand-rolled OAuth 2.0 + PKCE**                              | Uses Web/Node built-ins only                                                                                                                                                                                                                                                                | Best fit. Two routes, one token request, no dependency.                                                         |
+| **Arctic** (`arctic@3.7.0`)                                   | **Deprecated on npm** ("Package no longer supported"). Last release 2025-05-21. README: "Arctic was deprecated on July 2026."                                                                                                                                                               | Do not adopt.                                                                                                   |
+| **Auth.js** (`@auth/core@0.41.3`, `@auth/solid-start@0.19.3`) | SolidStart integration listed as "Experimental release". `@auth/solid-start` peers on `solid-start ^0.2.14` (the pre-1.0 package), not `@solidjs/start`. The community `@solid-mediakit/auth@3.1.3` peers on `@solidjs/start ^1` + `vinxi` (v1 only). Auth.js "is now part of Better Auth". | Poor fit for v2.                                                                                                |
+| **Better Auth** (`better-auth@1.7.7`)                         | Maintained. Has a `better-auth/solid-start` handler. Turns on stateless mode when no database is configured.                                                                                                                                                                                | Works, but large for this: zod, kysely, jose and more. Uses several cookies. The allowlist needs a custom hook. |
 
 Sources:
 
@@ -47,12 +47,12 @@ SolidStart's v2 session page shows the same API, a private `SESSION_SECRET` env 
 
 **Env vars** (all server-only, never `VITE_`-prefixed; see the prior research §3):
 
-| Var | Value |
-| --- | --- |
-| `GOOGLE_CLIENT_ID` | From the OAuth client |
-| `GOOGLE_CLIENT_SECRET` | From the OAuth client |
-| `SESSION_SECRET` | `openssl rand -base64 32` (≥32 chars). Rotating it signs everyone out. |
-| `ALLOWED_EMAIL` | The owner's Google address |
+| Var                    | Value                                                                  |
+| ---------------------- | ---------------------------------------------------------------------- |
+| `GOOGLE_CLIENT_ID`     | From the OAuth client                                                  |
+| `GOOGLE_CLIENT_SECRET` | From the OAuth client                                                  |
+| `SESSION_SECRET`       | `openssl rand -base64 32` (≥32 chars). Rotating it signs everyone out. |
+| `ALLOWED_EMAIL`        | The owner's Google address                                             |
 
 Set them per environment in Vercel (Production / Preview / Development); `vercel env pull` brings them to local dev. Source: <https://vercel.com/docs/environment-variables>.
 
@@ -219,4 +219,5 @@ Unverified details to confirm while building:
 - Whether `Response.redirect` keeps the `Set-Cookie` that `session.update` queued on the h3 event in SolidStart v2 API routes. If it does not, return `redirect()` from `@solidjs/router`, or build `new Response(null, { status: 302, headers: { Location } })`.
 - The dev server port for the localhost redirect URI.
 </content>
+
 </invoke>

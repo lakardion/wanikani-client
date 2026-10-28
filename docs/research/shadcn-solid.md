@@ -18,15 +18,15 @@ All facts come from the project repos on GitHub (source, issues, PRs, commit his
 
 ## 1. Candidates
 
-| | solid-ui | shadcn-solid |
-| --- | --- | --- |
-| Repo | [stefan-karger/solid-ui](https://github.com/stefan-karger/solid-ui) | [hngngn/shadcn-solid](https://github.com/hngngn/shadcn-solid) |
-| Docs | <https://www.solid-ui.com> | <https://shadcn-solid.netlify.app> (shadcn-solid.com answers HTTP 429 from a Caddy server; the repo's homepage field and issue #183 point to the Netlify URL) |
-| Stars | 1,550 | 768 |
-| Primitives | `@kobalte/core`, `@corvu/*` (drawer, calendar, otp-field, resizable), `solid-sonner` | `@kobalte/core`, `@corvu/*` (drawer, calendar, otp-field, resizable) |
-| Variant helper | `class-variance-authority` | `cva@beta` (1.0.0-beta.12) |
-| Install | Official `shadcn` CLI with registry URLs, or `solidui-cli`, or copy | Copy-paste only (`npx shadcn-solid` 0.7.7 is from 2025-03-26 and the CLI is cancelled) |
-| Tailwind v4 | Registry: yes. `solidui-cli init`: no (v3) | Yes (docs install page is v4 CSS-first); UnoCSS variant also offered |
+|                | solid-ui                                                                             | shadcn-solid                                                                                                                                                  |
+| -------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Repo           | [stefan-karger/solid-ui](https://github.com/stefan-karger/solid-ui)                  | [hngngn/shadcn-solid](https://github.com/hngngn/shadcn-solid)                                                                                                 |
+| Docs           | <https://www.solid-ui.com>                                                           | <https://shadcn-solid.netlify.app> (shadcn-solid.com answers HTTP 429 from a Caddy server; the repo's homepage field and issue #183 point to the Netlify URL) |
+| Stars          | 1,550                                                                                | 768                                                                                                                                                           |
+| Primitives     | `@kobalte/core`, `@corvu/*` (drawer, calendar, otp-field, resizable), `solid-sonner` | `@kobalte/core`, `@corvu/*` (drawer, calendar, otp-field, resizable)                                                                                          |
+| Variant helper | `class-variance-authority`                                                           | `cva@beta` (1.0.0-beta.12)                                                                                                                                    |
+| Install        | Official `shadcn` CLI with registry URLs, or `solidui-cli`, or copy                  | Copy-paste only (`npx shadcn-solid` 0.7.7 is from 2025-03-26 and the CLI is cancelled)                                                                        |
+| Tailwind v4    | Registry: yes. `solidui-cli init`: no (v3)                                           | Yes (docs install page is v4 CSS-first); UnoCSS variant also offered                                                                                          |
 
 Sources: repo metadata from `GET /repos/<owner>/<repo>`; primitives from `grep` of imports in `apps/docs/src/registry/ui/*.tsx` (shadcn-solid) and `apps/docs/registry.json` (solid-ui); npm versions from `npm view`.
 
@@ -39,7 +39,7 @@ Other ports: `gh search repos "shadcn solid"` lists [vgerbot-libraries/shadcn-so
 Three paths exist:
 
 - **Official `shadcn` CLI with registry URLs (works).** solid-ui publishes a shadcn-schema registry. [`apps/docs/registry.json`](https://github.com/stefan-karger/solid-ui/blob/main/apps/docs/registry.json) uses `$schema: https://ui.shadcn.com/schema/registry.json`, and the built items are live, for example <https://www.solid-ui.com/r/button.json> (HTTP 200). PR #186 "Adding Tailwind V4 & Shadcn Registry" added this. The owner's [solid-ui-shadcn-example](https://github.com/stefan-karger/solid-ui-shadcn-example) shows the setup: a hand-written `components.json` with `tailwind.config: ""` (Tailwind v4 mode) and `~/` aliases, on Tailwind 4.1.
-- **`solidui-cli` (do not use).** [`docs/installation/vite.mdx`](https://github.com/stefan-karger/solid-ui/blob/main/apps/docs/src/routes/(app)/docs/installation/vite.mdx) still says `npm install -D tailwindcss@3`, and [`docs/cli.mdx`](https://github.com/stefan-karger/solid-ui/blob/main/apps/docs/src/routes/(app)/docs/cli.mdx) says `init` "configures `tailwind.config.cjs`". Issue [#227](https://github.com/stefan-karger/solid-ui/issues/227) (open) shows `bunx solidui-cli@latest init` runs `bun add '' tailwindcss-animate ...` and fails with "unrecognised dependency format". Open PR [#238](https://github.com/stefan-karger/solid-ui/pull/238) fixes the empty argument. Open PR [#239](https://github.com/stefan-karger/solid-ui/pull/239) moves `init` to Tailwind v4 and SolidStart 2. Neither is merged.
+- **`solidui-cli` (do not use).** [`docs/installation/vite.mdx`](<https://github.com/stefan-karger/solid-ui/blob/main/apps/docs/src/routes/(app)/docs/installation/vite.mdx>) still says `npm install -D tailwindcss@3`, and [`docs/cli.mdx`](<https://github.com/stefan-karger/solid-ui/blob/main/apps/docs/src/routes/(app)/docs/cli.mdx>) says `init` "configures `tailwind.config.cjs`". Issue [#227](https://github.com/stefan-karger/solid-ui/issues/227) (open) shows `bunx solidui-cli@latest init` runs `bun add '' tailwindcss-animate ...` and fails with "unrecognised dependency format". Open PR [#238](https://github.com/stefan-karger/solid-ui/pull/238) fixes the empty argument. Open PR [#239](https://github.com/stefan-karger/solid-ui/pull/239) moves `init` to Tailwind v4 and SolidStart 2. Neither is merged.
 - **Copy the source** from the docs site or from the registry JSON `files[].content`.
 
 The registry's `css` item (<https://www.solid-ui.com/r/css.json>) adds only the extra tokens (`info`, `success`, `warning`, `error`, `radius`) and Kobalte keyframes. It writes `@custom-variant dark (&:is(.dark *));`. It does not add the base shadcn tokens (`background`, `primary`, ...) and does not add a `cn` util. You add those by hand (§8).
@@ -50,13 +50,13 @@ The registry's `css` item (<https://www.solid-ui.com/r/css.json>) adds only the 
 
 ## 3. Primitives and SolidStart v2 compatibility
 
-| Package | Latest | Peer `solid-js` | Notes |
-| --- | --- | --- | --- |
-| `@kobalte/core` | 0.13.14 (release commit 2026-09-07) | `^1.9.8` | `2.0.0-alpha.4` (2026-10-20) peers `solid-js 2.0.0-rc.16`; that line is for Solid 2 |
-| `@corvu/drawer` | 0.2.4 | `^1.8` | corvu repo last commit 2026-08-24 |
-| `solid-sonner` | 0.3.2 | `^1.6.0` | toast, solid-ui only |
-| `@solidjs/start` | 2.1.0 | `^1.9.15` | peers `vite ^8 \|\| ^9` |
-| `solid-js` | 1.9.17 (`latest`) | | `next` is 2.0.0-rc.17 |
+| Package          | Latest                              | Peer `solid-js` | Notes                                                                               |
+| ---------------- | ----------------------------------- | --------------- | ----------------------------------------------------------------------------------- |
+| `@kobalte/core`  | 0.13.14 (release commit 2026-09-07) | `^1.9.8`        | `2.0.0-alpha.4` (2026-10-20) peers `solid-js 2.0.0-rc.16`; that line is for Solid 2 |
+| `@corvu/drawer`  | 0.2.4                               | `^1.8`          | corvu repo last commit 2026-08-24                                                   |
+| `solid-sonner`   | 0.3.2                               | `^1.6.0`        | toast, solid-ui only                                                                |
+| `@solidjs/start` | 2.1.0                               | `^1.9.15`       | peers `vite ^8 \|\| ^9`                                                             |
+| `solid-js`       | 1.9.17 (`latest`)                   |                 | `next` is 2.0.0-rc.17                                                               |
 
 Source: `npm view <pkg> version peerDependencies dist-tags`.
 
@@ -68,19 +68,19 @@ Neither port needs the `@kobalte/tailwindcss` plugin (which peers `tailwindcss ^
 
 ## 4. v1 components
 
-| Need | solid-ui (registry name) | shadcn-solid (file) |
-| --- | --- | --- |
-| Button | `button` (Kobalte Button) | `button.tsx` |
-| Input | `text-field` (Kobalte TextField: `TextFieldInput`, `TextFieldLabel`, ...) | `text-field.tsx` |
-| Card | `card` | `card.tsx` |
-| Popover | `popover` (Kobalte Popover) | `popover.tsx` |
-| Sheet | `sheet` (Kobalte Dialog, side variants) | none |
-| Drawer | `drawer` (`@corvu/drawer`, swipe to close) | `drawer.tsx` (`@corvu/drawer`) |
-| Alert | `alert`, plus `callout` | `alert.tsx` |
-| Skeleton | `skeleton` | `skeleton.tsx` |
-| Spinner | none (PR [#237](https://github.com/stefan-karger/solid-ui/pull/237) adds one, not merged) | none |
-| Badge | `badge` | `badge.tsx` |
-| Toast | `sonner`, `toast` | `sonner.tsx` |
+| Need     | solid-ui (registry name)                                                                  | shadcn-solid (file)            |
+| -------- | ----------------------------------------------------------------------------------------- | ------------------------------ |
+| Button   | `button` (Kobalte Button)                                                                 | `button.tsx`                   |
+| Input    | `text-field` (Kobalte TextField: `TextFieldInput`, `TextFieldLabel`, ...)                 | `text-field.tsx`               |
+| Card     | `card`                                                                                    | `card.tsx`                     |
+| Popover  | `popover` (Kobalte Popover)                                                               | `popover.tsx`                  |
+| Sheet    | `sheet` (Kobalte Dialog, side variants)                                                   | none                           |
+| Drawer   | `drawer` (`@corvu/drawer`, swipe to close)                                                | `drawer.tsx` (`@corvu/drawer`) |
+| Alert    | `alert`, plus `callout`                                                                   | `alert.tsx`                    |
+| Skeleton | `skeleton`                                                                                | `skeleton.tsx`                 |
+| Spinner  | none (PR [#237](https://github.com/stefan-karger/solid-ui/pull/237) adds one, not merged) | none                           |
+| Badge    | `badge`                                                                                   | `badge.tsx`                    |
+| Toast    | `sonner`, `toast`                                                                         | `sonner.tsx`                   |
 
 Sources: solid-ui `apps/docs/public/r/` (55 items) and `registry.json`; shadcn-solid `apps/docs/src/registry/ui/` (46 files).
 
@@ -96,12 +96,12 @@ Both ports use Kobalte's color mode. `ColorModeProvider` writes `document.docume
 
 ## 6. Maintenance (as of 2026-10-22)
 
-| | solid-ui | shadcn-solid |
-| --- | --- | --- |
-| Last release | `solidui-cli@0.7.2`, 2026-01-14 | `shadcn-solid@0.7.7`, 2025-03-26 |
-| `main` commits since 2025-06-01 | 1 | 68 (2 in 2026; last 2026-02-13) |
-| Other activity | `dev` branch: 32 commits since 2025-06-01, last 2026-02-23. Open PRs #237 (all components for shadcn v4, updated 2026-10-21) and #239 (SolidStart 2 + Tailwind v4 CLI, updated 2026-10-22) from community contributors | PRs disabled (`has_pull_requests: false`). Owner says "in the middle of a refactor" on issue [#185](https://github.com/hngngn/shadcn-solid/issues/185) |
-| Owner statement | Issue [#233](https://github.com/stefan-karger/solid-ui/issues/233) "Project is dead?": "nope :) just waiting for solid v2 to drop to fully focus on supporting that" | none on status |
+|                                 | solid-ui                                                                                                                                                                                                               | shadcn-solid                                                                                                                                           |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Last release                    | `solidui-cli@0.7.2`, 2026-01-14                                                                                                                                                                                        | `shadcn-solid@0.7.7`, 2025-03-26                                                                                                                       |
+| `main` commits since 2025-06-01 | 1                                                                                                                                                                                                                      | 68 (2 in 2026; last 2026-02-13)                                                                                                                        |
+| Other activity                  | `dev` branch: 32 commits since 2025-06-01, last 2026-02-23. Open PRs #237 (all components for shadcn v4, updated 2026-10-21) and #239 (SolidStart 2 + Tailwind v4 CLI, updated 2026-10-22) from community contributors | PRs disabled (`has_pull_requests: false`). Owner says "in the middle of a refactor" on issue [#185](https://github.com/hngngn/shadcn-solid/issues/185) |
+| Owner statement                 | Issue [#233](https://github.com/stefan-karger/solid-ui/issues/233) "Project is dead?": "nope :) just waiting for solid v2 to drop to fully focus on supporting that"                                                   | none on status                                                                                                                                         |
 
 Because both are copy-in, the app owns the component code after install. Slow upstream mostly costs future fixes, not runtime risk.
 
@@ -148,8 +148,20 @@ Do these after the SolidStart v2 move, or before it on plain Vite with the extra
      "style": "new-york",
      "rsc": false,
      "tsx": true,
-     "tailwind": { "config": "", "css": "src/index.css", "baseColor": "neutral", "cssVariables": true, "prefix": "" },
-     "aliases": { "components": "~/components", "utils": "~/lib/utils", "ui": "~/components/ui", "lib": "~/lib", "hooks": "~/hooks" },
+     "tailwind": {
+       "config": "",
+       "css": "src/index.css",
+       "baseColor": "neutral",
+       "cssVariables": true,
+       "prefix": ""
+     },
+     "aliases": {
+       "components": "~/components",
+       "utils": "~/lib/utils",
+       "ui": "~/components/ui",
+       "lib": "~/lib",
+       "hooks": "~/hooks"
+     },
      "iconLibrary": "lucide"
    }
    ```
@@ -166,12 +178,12 @@ Do these after the SolidStart v2 move, or before it on plain Vite with the extra
 4. Create `src/lib/utils.ts`:
 
    ```ts
-   import type { ClassValue } from "clsx"
-   import { clsx } from "clsx"
-   import { twMerge } from "tailwind-merge"
+   import type { ClassValue } from "clsx";
+   import { clsx } from "clsx";
+   import { twMerge } from "tailwind-merge";
 
    export function cn(...inputs: ClassValue[]) {
-     return twMerge(clsx(inputs))
+     return twMerge(clsx(inputs));
    }
    ```
 
@@ -194,10 +206,10 @@ Do these after the SolidStart v2 move, or before it on plain Vite with the extra
 7. Wrap the app in Kobalte's color mode:
 
    ```tsx
-   import type { JSX } from "solid-js"
-   import { ColorModeProvider, ColorModeScript, createLocalStorageManager } from "@kobalte/core"
+   import type { JSX } from "solid-js";
+   import { ColorModeProvider, ColorModeScript, createLocalStorageManager } from "@kobalte/core";
 
-   const storageManager = createLocalStorageManager("theme")
+   const storageManager = createLocalStorageManager("theme");
 
    export function ThemeRoot(props: { children: JSX.Element }) {
      return (
@@ -205,7 +217,7 @@ Do these after the SolidStart v2 move, or before it on plain Vite with the extra
          <ColorModeScript storageType={storageManager.type} />
          <ColorModeProvider storageManager={storageManager}>{props.children}</ColorModeProvider>
        </>
-     )
+     );
    }
    ```
 
