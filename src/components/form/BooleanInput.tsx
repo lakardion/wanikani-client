@@ -5,8 +5,8 @@ type Props = {
 };
 
 export default function BooleanInput(props: Props) {
-  const v = props.value;
-  const state: "unset" | "true" | "false" = v === true ? "true" : v === false ? "false" : "unset";
+  const state = (): "unset" | "true" | "false" =>
+    props.value === true ? "true" : props.value === false ? "false" : "unset";
   return (
     <div class="flex flex-col gap-1">
       <label class="flex items-baseline gap-1 text-xs font-medium text-zinc-300">
@@ -14,13 +14,13 @@ export default function BooleanInput(props: Props) {
         <span class="text-zinc-500">boolean</span>
       </label>
       <div class="flex gap-1">
-        <Button active={state === "unset"} onClick={() => props.onChange(undefined)}>
+        <Button active={state() === "unset"} onClick={() => props.onChange(undefined)}>
           unset
         </Button>
-        <Button active={state === "true"} onClick={() => props.onChange(true)}>
+        <Button active={state() === "true"} onClick={() => props.onChange(true)}>
           true
         </Button>
-        <Button active={state === "false"} onClick={() => props.onChange(false)}>
+        <Button active={state() === "false"} onClick={() => props.onChange(false)}>
           false
         </Button>
       </div>
@@ -32,7 +32,7 @@ function Button(props: { active: boolean; onClick: () => void; children: string 
   return (
     <button
       type="button"
-      onClick={props.onClick}
+      onClick={() => props.onClick()}
       class={`rounded-md border px-2 py-1 font-mono text-xs ${
         props.active
           ? "border-purple-500 bg-purple-500/20 text-purple-200"

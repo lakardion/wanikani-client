@@ -8,17 +8,17 @@ import type {
   LabelProps,
   OverlayProps,
 } from "@corvu/drawer";
-import DrawerPrimitive from "@corvu/drawer";
+import DrawerPrimitive, { Close, Portal, Trigger, useContext } from "@corvu/drawer";
 
 import { cn } from "~/lib/utils";
 
 const Drawer = DrawerPrimitive;
 
-const DrawerTrigger = DrawerPrimitive.Trigger;
+const DrawerTrigger = Trigger;
 
-const DrawerPortal = DrawerPrimitive.Portal;
+const DrawerPortal = Portal;
 
-const DrawerClose = DrawerPrimitive.Close;
+const DrawerClose = Close;
 
 type DrawerOverlayProps<T extends ValidComponent = "div"> = OverlayProps<T> & { class?: string };
 
@@ -26,7 +26,7 @@ const DrawerOverlay = <T extends ValidComponent = "div">(
   props: DynamicProps<T, DrawerOverlayProps<T>>,
 ) => {
   const [, rest] = splitProps(props as DrawerOverlayProps, ["class"]);
-  const drawerContext = DrawerPrimitive.useContext();
+  const drawerContext = useContext();
   return (
     <DrawerPrimitive.Overlay
       class={cn(

@@ -11,5 +11,5 @@
         : stored;
     document.documentElement.dataset.kbTheme = mode;
     document.documentElement.style.colorScheme = mode;
-  } catch (e) {}
+  } catch {}
 })();

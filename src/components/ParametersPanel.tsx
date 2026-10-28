@@ -62,38 +62,38 @@ function FieldRenderer(props: { param: ParamDef }) {
   );
 }
 
+const run = async () => {
+  const c = client();
+  if (!c) {
+    setError(new Error("Set an API key first"));
+    return;
+  }
+  setLoading(true);
+  setError(undefined);
+  setResult(undefined);
+  try {
+    const args = buildPayload();
+    const res = await selectedMethod().invoke(c, args);
+    setResult(res);
+  } catch (err) {
+    setError(err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const canRun = () => {
+  if (!client()) return false;
+  const m = selectedMethod();
+  const needsId = m.params.some((p) => p.kind === "id");
+  if (needsId) {
+    const id = paramValues().id;
+    return typeof id === "number" && Number.isFinite(id);
+  }
+  return true;
+};
+
 export default function ParametersPanel() {
-  const run = async () => {
-    const c = client();
-    if (!c) {
-      setError(new Error("Set an API key first"));
-      return;
-    }
-    setLoading(true);
-    setError(undefined);
-    setResult(undefined);
-    try {
-      const args = buildPayload();
-      const res = await selectedMethod().invoke(c, args);
-      setResult(res);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const canRun = () => {
-    if (!client()) return false;
-    const m = selectedMethod();
-    const needsId = m.params.some((p) => p.kind === "id");
-    if (needsId) {
-      const id = paramValues().id;
-      return typeof id === "number" && Number.isFinite(id);
-    }
-    return true;
-  };
-
   return (
     <div class="flex h-full flex-col gap-4 overflow-y-auto border-r border-zinc-800 bg-zinc-950 p-4">
       <div class="flex items-center justify-between">

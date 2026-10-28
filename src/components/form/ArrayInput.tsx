@@ -6,7 +6,7 @@ type Props = {
 };
 
 export default function ArrayInput(props: Props) {
-  const display = Array.isArray(props.value) ? props.value.join(", ") : "";
+  const display = () => (Array.isArray(props.value) ? props.value.join(", ") : "");
 
   return (
     <div class="flex flex-col gap-1">
@@ -16,7 +16,7 @@ export default function ArrayInput(props: Props) {
       </label>
       <input
         type="text"
-        value={display}
+        value={display()}
         placeholder={props.itemType === "number" ? "e.g. 1, 2, 3" : "e.g. one, two"}
         onInput={(e) => {
           const raw = e.currentTarget.value;

@@ -26,7 +26,7 @@ export function groupOf(partsOfSpeech: string[]): WordGroup {
 const shuffle = <T>(a: T[]) =>
   a
     .map((v) => [Math.random(), v] as const)
-    .sort((x, y) => x[0] - y[0])
+    .toSorted((x, y) => x[0] - y[0])
     .map(([, v]) => v);
 
 /** The **Word sample**: equal slots per **Word group**, short groups filled at random from the other words, and every **Known kanji**. */

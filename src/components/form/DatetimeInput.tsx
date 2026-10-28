@@ -4,15 +4,16 @@ type Props = {
   onChange: (v: string | undefined) => void;
 };
 
-export default function DatetimeInput(props: Props) {
-  const isoToLocal = (iso: string): string => {
-    if (!iso) return "";
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return "";
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
+const pad = (n: number) => String(n).padStart(2, "0");
 
+function isoToLocal(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+export default function DatetimeInput(props: Props) {
   return (
     <div class="flex flex-col gap-1">
       <label class="flex items-baseline gap-1 text-xs font-medium text-zinc-300">
