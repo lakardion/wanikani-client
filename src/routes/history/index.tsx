@@ -35,7 +35,7 @@ const tabClass = (on: boolean) =>
 
 export default function History() {
   const [records, { refetch }] = createResource(async () =>
-    (await getAll().catch(() => [])).sort((a, b) => b.finishedAt.localeCompare(a.finishedAt)),
+    (await getAll().catch(() => [])).toSorted((a, b) => b.finishedAt.localeCompare(a.finishedAt)),
   );
   const count = () => records()?.length ?? 0;
   const [tab, setTab] = createSignal<"list" | "stats">("list");

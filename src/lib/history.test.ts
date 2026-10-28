@@ -31,8 +31,8 @@ it.each<[string, Attempt[], string]>([
   expect(outcome(attempts)).toBe(expected);
 });
 
-const rec = (grammarId: string, outcome: Outcome) =>
-  ({ outcome, exercise: { grammarId } }) as HistoryRecord;
+const rec = (grammarId: string, o: Outcome) =>
+  ({ outcome: o, exercise: { grammarId } }) as HistoryRecord;
 
 describe("stats", () => {
   const records = [

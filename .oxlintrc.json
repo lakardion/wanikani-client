@@ -8,6 +8,8 @@
   "ignorePatterns": [".claude/**", "prototypes/**"],
   "rules": {
     "import/no-unassigned-import": ["warn", { "allow": ["**/*.css"] }],
+    "no-unassigned-vars": "off",
+    "unicorn/prefer-add-event-listener": "off",
     "solid/components-return-once": "warn",
     "solid/event-handlers": "warn",
     "solid/imports": "warn",

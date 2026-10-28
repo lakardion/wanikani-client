@@ -142,6 +142,7 @@ function Toggle(props: { label: string; checked: boolean; onChange: (v: boolean)
       <button
         type="button"
         role="switch"
+        aria-label={props.label}
         aria-checked={props.checked}
         class={`relative h-6 w-10 rounded-full transition-colors ${props.checked ? "bg-primary" : "bg-muted"}`}
         onClick={() => props.onChange(!props.checked)}
@@ -153,6 +154,11 @@ function Toggle(props: { label: string; checked: boolean; onChange: (v: boolean)
     </label>
   );
 }
+
+const lastExport = () => {
+  const at = lastExportAt();
+  return at ? new Date(at).toLocaleString() : "never";
+};
 
 /** Reads the record count and the storage state each time the popover opens. */
 function HistorySettings() {
@@ -176,10 +182,6 @@ function HistorySettings() {
     setSaved(0);
     setConfirming(false);
   }
-  const lastExport = () => {
-    const at = lastExportAt();
-    return at ? new Date(at).toLocaleString() : "never";
-  };
   return (
     <div class="flex flex-col gap-3">
       <h4 class="text-xs font-medium tracking-wide text-muted-foreground uppercase">History</h4>

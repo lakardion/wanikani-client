@@ -48,7 +48,7 @@ export function stats(records: HistoryRecord[]) {
       if (r.outcome === "give_up") t.gaveUp++;
     }
   }
-  const points = [...byId.values()].sort(
+  const points = [...byId.values()].toSorted(
     (a, b) => a.passed * b.done - b.passed * a.done || b.done - a.done,
   );
   return { overall, points };
@@ -178,7 +178,7 @@ async function transact(change: (store: IDBObjectStore) => void) {
   });
 }
 
-const put = (record: HistoryRecord) => transact((s) => s.put(record));
+const put = (r: HistoryRecord) => transact((s) => s.put(r));
 
 export async function getAll() {
   const req = (await open()).transaction(STORE).objectStore(STORE).getAll();
