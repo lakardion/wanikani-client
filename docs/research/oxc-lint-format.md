@@ -20,12 +20,12 @@ All facts come from the oxc docs (oxc.rs and their source in [oxc-project/websit
 
 ## 1. oxfmt
 
-| Item | Fact | Source |
-| --- | --- | --- |
-| Version | 0.75.0 (`latest`), published 2026-10-27 | `npm view oxfmt` |
-| Status | Beta. "We are excited to announce that Oxfmt has reached beta." (2026-02-24). Alpha was 2025-12-01. No stable post exists. | [blog/2026-02-24-oxfmt-beta.md](https://github.com/oxc-project/website/blob/main/src/blog/2026-02-24-oxfmt-beta.md), blog index |
-| Prettier parity | "Oxfmt now passes 100% of Prettier's JavaScript and TypeScript conformance tests." Remaining differences are listed as "Known divergences". | beta post; [formatter overview](https://oxc.rs/docs/guide/usage/formatter.html) |
-| Prettier plugins | "Not supported." Tailwind sorting, import sorting and `package.json` sorting are built in instead. | [unsupported features](https://oxc.rs/docs/guide/usage/formatter/unsupported-features.html) |
+| Item             | Fact                                                                                                                                        | Source                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Version          | 0.75.0 (`latest`), published 2026-10-27                                                                                                     | `npm view oxfmt`                                                                                                                |
+| Status           | Beta. "We are excited to announce that Oxfmt has reached beta." (2026-02-24). Alpha was 2025-12-01. No stable post exists.                  | [blog/2026-02-24-oxfmt-beta.md](https://github.com/oxc-project/website/blob/main/src/blog/2026-02-24-oxfmt-beta.md), blog index |
+| Prettier parity  | "Oxfmt now passes 100% of Prettier's JavaScript and TypeScript conformance tests." Remaining differences are listed as "Known divergences". | beta post; [formatter overview](https://oxc.rs/docs/guide/usage/formatter.html)                                                 |
+| Prettier plugins | "Not supported." Tailwind sorting, import sorting and `package.json` sorting are built in instead.                                          | [unsupported features](https://oxc.rs/docs/guide/usage/formatter/unsupported-features.html)                                     |
 
 **File types.** The [language support page](https://oxc.rs/docs/guide/usage/formatter/language-support.html) lists these as native (Rust, no Node): JS/JSX, TS/TSX (`.ts`, `.tsx`, `.d.ts`), JSON/JSONC/JSON5, CSS/SCSS/Less, GraphQL, TOML, YAML, Markdown (`.md`). HTML, Vue, Svelte, Astro and MDX go to a bundled Prettier. So every file type in this repo is native.
 
@@ -53,11 +53,11 @@ Key options and defaults ([generated config reference](https://github.com/oxc-pr
 
 ## 2. oxlint
 
-| Item | Fact | Source |
-| --- | --- | --- |
-| Version | 1.90.0 (`latest`), published 2026-10-27. Optional peer `oxlint-tsgolint >=7.0.2005`. | `npm view oxlint` |
-| Status | Stable since 2025-06-10 | [blog/2025-06-10-oxlint-stable.md](https://github.com/oxc-project/website/blob/main/src/blog/2025-06-10-oxlint-stable.md) |
-| Rules | 872 built-in rules. 111 on by default. | `oxlint --rules -f json` |
+| Item    | Fact                                                                                 | Source                                                                                                                    |
+| ------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Version | 1.90.0 (`latest`), published 2026-10-27. Optional peer `oxlint-tsgolint >=7.0.2005`. | `npm view oxlint`                                                                                                         |
+| Status  | Stable since 2025-06-10                                                              | [blog/2025-06-10-oxlint-stable.md](https://github.com/oxc-project/website/blob/main/src/blog/2025-06-10-oxlint-stable.md) |
+| Rules   | 872 built-in rules. 111 on by default.                                               | `oxlint --rules -f json`                                                                                                  |
 
 **Config file.** oxlint looks for `.oxlintrc.json`, `.oxlintrc.jsonc`, `oxlint.config.ts` or `oxlint.config.mts` in the working directory. `.oxlintrc.json` allows comments. The TS form needs the Node-based `oxlint` package and Node 22.18+ or 24+ ([config](https://oxc.rs/docs/guide/usage/linter/config.html)). Both work here. The JSON form is enough and matches the eslint-plugin-solid docs.
 
@@ -128,11 +128,11 @@ One VS Code extension covers both tools: `oxc.oxc-vscode` (Marketplace and Open 
 
 Current releases (GitHub `releases/latest`):
 
-| Action | Latest | Notes |
-| --- | --- | --- |
-| `actions/checkout` | v7.0.1 (2026-07-20) | input `persist-credentials` exists |
-| `oven-sh/setup-bun` | v2.2.0 (2026-03-14) | inputs `bun-version`, `bun-version-file`. With neither, it reads `packageManager`, then `engines.bun`, then uses `latest` ([README](https://github.com/oven-sh/setup-bun#usage)) |
-| `actions/setup-node` | v7.1.0 (2026-10-08) | input `node-version-file` exists |
+| Action               | Latest              | Notes                                                                                                                                                                            |
+| -------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `actions/checkout`   | v7.0.1 (2026-07-20) | input `persist-credentials` exists                                                                                                                                               |
+| `oven-sh/setup-bun`  | v2.2.0 (2026-03-14) | inputs `bun-version`, `bun-version-file`. With neither, it reads `packageManager`, then `engines.bun`, then uses `latest` ([README](https://github.com/oven-sh/setup-bun#usage)) |
+| `actions/setup-node` | v7.1.0 (2026-10-08) | input `node-version-file` exists                                                                                                                                                 |
 
 This repo's `package.json` has no `packageManager` field, so pin `bun-version` in the workflow. `ubuntu-24.04` ships Node 22.23.3 ([runner image readme](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md)). The repo pins Node 24 in `.node-version`, and `bun run` starts `#!/usr/bin/env node` binaries (`tsc`, `vitest`, `oxlint`) with Node. So add `setup-node` with `node-version-file`.
 

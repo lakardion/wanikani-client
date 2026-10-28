@@ -1,9 +1,9 @@
 type Props = {
-  name: string
-  value: unknown
-  onChange: (v: number | undefined) => void
-  required?: boolean
-}
+  name: string;
+  value: unknown;
+  onChange: (v: number | undefined) => void;
+  required?: boolean;
+};
 
 export default function NumberInput(props: Props) {
   return (
@@ -15,15 +15,15 @@ export default function NumberInput(props: Props) {
       </label>
       <input
         type="number"
-        value={typeof props.value === 'number' ? String(props.value) : ''}
+        value={typeof props.value === "number" ? String(props.value) : ""}
         onInput={(e) => {
-          const raw = e.currentTarget.value
-          if (raw === '') return props.onChange(undefined)
-          const n = Number(raw)
-          props.onChange(Number.isFinite(n) ? n : undefined)
+          const raw = e.currentTarget.value;
+          if (raw === "") return props.onChange(undefined);
+          const n = Number(raw);
+          props.onChange(Number.isFinite(n) ? n : undefined);
         }}
         class="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 font-mono text-sm text-zinc-100 focus:border-purple-500 focus:outline-none"
       />
     </div>
-  )
+  );
 }

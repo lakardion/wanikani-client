@@ -1,4 +1,4 @@
-import { apiKey, setApiKey } from '../state'
+import { apiKey, setApiKey } from "../state";
 
 export default function ApiKeyBar() {
   return (
@@ -23,5 +23,5 @@ export default function ApiKeyBar() {
         />
       </div>
     </header>
-  )
+  );
 }

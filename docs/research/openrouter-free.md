@@ -21,9 +21,9 @@ All facts come from first-party pages (openrouter.ai docs, terms, and public API
 From [Limits](https://openrouter.ai/docs/api/reference/limits) (constants in the page source: `FREE_MODEL_RATE_LIMIT_RPM = 20`, `FREE_MODEL_NO_CREDITS_RPD = 50`, `FREE_MODEL_HAS_CREDITS_RPD = 1000`, `FREE_MODEL_CREDITS_THRESHOLD = 10`):
 
 | Credits purchased (all time) | Requests per minute | Requests per day |
-| --- | --- | --- |
-| Less than 10 | 20 | 50 |
-| At least 10 | 20 | 1000 |
+| ---------------------------- | ------------------- | ---------------- |
+| Less than 10                 | 20                  | 50               |
+| At least 10                  | 20                  | 1000             |
 
 - The limits apply to model IDs that end in `:free`. The tier depends on **all-time credits purchased**, not on the current balance. "The higher daily ceiling is granted starting one credit below the table's threshold" (at $9) to absorb fees.
 - The paid variant of a model "has no platform-level request cap".
@@ -53,13 +53,13 @@ From [Limits](https://openrouter.ai/docs/api/reference/limits) (constants in the
 
 **Data policy of the providers behind the candidate free endpoints**, from `https://openrouter.ai/api/frontend/v1/all-providers` (the data source of the Provider Logging table):
 
-| Free endpoint | Provider | Trains on prompts | Retains prompts |
-| --- | --- | --- | --- |
-| `nvidia/nemotron-3-super-120b-a12b:free` | NVIDIA | **yes** | yes |
-| `liquid/lfm-2.5-2.6b:free` | Liquid | **yes** | yes |
-| `google/gemma-4-31b-it:free`, `google/gemma-4-26b-a4b-it:free` | Google AI Studio | no | yes, 55 days |
-| `dots-studio/dots-3-note-preview:free` | AtlasCloud | no | yes |
-| `apodex/apodex-1.1-mini:free` | Novita | no | no |
+| Free endpoint                                                  | Provider         | Trains on prompts | Retains prompts |
+| -------------------------------------------------------------- | ---------------- | ----------------- | --------------- |
+| `nvidia/nemotron-3-super-120b-a12b:free`                       | NVIDIA           | **yes**           | yes             |
+| `liquid/lfm-2.5-2.6b:free`                                     | Liquid           | **yes**           | yes             |
+| `google/gemma-4-31b-it:free`, `google/gemma-4-26b-a4b-it:free` | Google AI Studio | no                | yes, 55 days    |
+| `dots-studio/dots-3-note-preview:free`                         | AtlasCloud       | no                | yes             |
+| `apodex/apodex-1.1-mini:free`                                  | Novita           | no                | no              |
 
 The inputs here are a vocab/kanji list and the owner's own English translations. They are not sensitive, so a training endpoint is acceptable for the proof of concept. To reach NVIDIA or Liquid free endpoints, turn on the **free-model** training setting at [settings/privacy](https://openrouter.ai/settings/privacy). Keep the paid-model setting off.
 
@@ -67,11 +67,11 @@ The inputs here are a vocab/kanji list and the owner's own English translations.
 
 ## 3. AI SDK connection
 
-| Package | Latest | Peer deps | Node engine | Source |
-| --- | --- | --- | --- | --- |
-| `@openrouter/ai-sdk-provider` | 3.1.0 | `ai@^7.0.0`, `zod@^3.25.76 \|\| ^4.1.8` | >=22 | [npm](https://www.npmjs.com/package/@openrouter/ai-sdk-provider) |
-| `ai` | 7.0.138 | | | [npm](https://www.npmjs.com/package/ai) |
-| `@ai-sdk/openai-compatible` | 3.0.68 | `zod` | | [npm](https://www.npmjs.com/package/@ai-sdk/openai-compatible) |
+| Package                       | Latest  | Peer deps                               | Node engine | Source                                                           |
+| ----------------------------- | ------- | --------------------------------------- | ----------- | ---------------------------------------------------------------- |
+| `@openrouter/ai-sdk-provider` | 3.1.0   | `ai@^7.0.0`, `zod@^3.25.76 \|\| ^4.1.8` | >=22        | [npm](https://www.npmjs.com/package/@openrouter/ai-sdk-provider) |
+| `ai`                          | 7.0.138 |                                         |             | [npm](https://www.npmjs.com/package/ai)                          |
+| `@ai-sdk/openai-compatible`   | 3.0.68  | `zod`                                   |             | [npm](https://www.npmjs.com/package/@ai-sdk/openai-compatible)   |
 
 - Both the [OpenRouter docs](https://openrouter.ai/docs/guides/community/vercel-ai-sdk) and the [AI SDK provider list](https://ai-sdk.dev/providers/community-providers/openrouter) point to `@openrouter/ai-sdk-provider` (repo `OpenRouterTeam/ai-sdk-provider`). Use it, not the generic OpenAI-compatible provider. It types OpenRouter-only settings: `provider` routing (`require_parameters`, `data_collection`, `zdr`), `plugins`, `reasoning`, `usage`, `extraBody`.
 - **Structured output works.** In the published `dist/index.js` (3.1.0), an AI SDK `responseFormat` of type `json` with a schema becomes `response_format: { type: "json_schema", json_schema: { schema, strict: true, name: "response" } }`. `strict` defaults to `true`. `Output.object({ schema })` sends a JSON schema, so it takes this path. The AI SDK then validates with Zod and throws `AI_NoObjectGeneratedError` on a parse or schema failure ([AI SDK structured data](https://ai-sdk.dev/docs/ai-sdk-core/generating-structured-data)).
@@ -96,20 +96,20 @@ From `GET https://openrouter.ai/api/v1/models` and `/api/v1/models/{id}/endpoint
 
 **Free entries with `structured_outputs` (JSON Schema):**
 
-| Model ID | Notes | Context |
-| --- | --- | --- |
-| `nvidia/nemotron-3-super-120b-a12b:free` | 120B MoE, 12B active. The [model card](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16) lists Japanese as a supported language and names "structured outputs" in fine-tuning. Provider NVIDIA trains on prompts. | 262k |
-| `apodex/apodex-1.1-mini:free` | "Reasoning-first", built for "research and forecasting tasks". Added 2026-10-01. No language data found. | 262k |
-| `dots-studio/dots-3-note-preview:free` | Preview, 280B MoE, 16B active. **`expiration_date` 2026-12-31.** | 512k |
-| `liquid/lfm-2.5-2.6b:free` | 2.6B parameters. Too small for this task. Provider trains on prompts. | 65k |
-| `openrouter/free` | Router: picks a free model "at random" that supports the request's features. Not reproducible, so not usable for an eval. | 200k |
+| Model ID                                 | Notes                                                                                                                                                                                                                                 | Context |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `nvidia/nemotron-3-super-120b-a12b:free` | 120B MoE, 12B active. The [model card](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16) lists Japanese as a supported language and names "structured outputs" in fine-tuning. Provider NVIDIA trains on prompts. | 262k    |
+| `apodex/apodex-1.1-mini:free`            | "Reasoning-first", built for "research and forecasting tasks". Added 2026-10-01. No language data found.                                                                                                                              | 262k    |
+| `dots-studio/dots-3-note-preview:free`   | Preview, 280B MoE, 16B active. **`expiration_date` 2026-12-31.**                                                                                                                                                                      | 512k    |
+| `liquid/lfm-2.5-2.6b:free`               | 2.6B parameters. Too small for this task. Provider trains on prompts.                                                                                                                                                                 | 65k     |
+| `openrouter/free`                        | Router: picks a free model "at random" that supports the request's features. Not reproducible, so not usable for an eval.                                                                                                             | 200k    |
 
 **Free entries with `response_format` but not `structured_outputs` (JSON mode only):**
 
-| Model ID | Notes |
-| --- | --- |
-| `google/gemma-4-31b-it:free` | 30.7B dense. The [Gemma 4 model card](https://ai.google.dev/gemma/docs/core/model_card_4) says "Out-of-the-box support for 35+ languages, pre-trained on 140+ languages". It does not name Japanese. Free provider: Google AI Studio. Of its 13 paid endpoints, 11 support `structured_outputs`. The lowest price is $0.09 input / $0.34 output. |
-| `google/gemma-4-26b-a4b-it:free` | 25.2B MoE, 3.8B active. Faster, likely weaker. |
+| Model ID                         | Notes                                                                                                                                                                                                                                                                                                                                            |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `google/gemma-4-31b-it:free`     | 30.7B dense. The [Gemma 4 model card](https://ai.google.dev/gemma/docs/core/model_card_4) says "Out-of-the-box support for 35+ languages, pre-trained on 140+ languages". It does not name Japanese. Free provider: Google AI Studio. Of its 13 paid endpoints, 11 support `structured_outputs`. The lowest price is $0.09 input / $0.34 output. |
+| `google/gemma-4-26b-a4b-it:free` | 25.2B MoE, 3.8B active. Faster, likely weaker.                                                                                                                                                                                                                                                                                                   |
 
 **Churn:** "Free model availability changes frequently" ([Free Models Router](https://openrouter.ai/docs/guides/routing/routers/free-router)). Of the 17 zero-price text entries, 9 were added after 2026-07-01. Two (`poolside/laguna-*-2.1:free`) expire on 2026-10-31, and `dots-3-note-preview:free` expires on 2026-12-31. The examples in OpenRouter's own docs (DeepSeek R1, Llama, Qwen free) are no longer in the list. Plan for the chosen free model to disappear within months. Keep the model ID in one env var.
 

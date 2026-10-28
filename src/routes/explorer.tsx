@@ -1,8 +1,8 @@
-import ApiKeyBar from '../components/ApiKeyBar'
-import MethodPicker from '../components/MethodPicker'
-import ParametersPanel from '../components/ParametersPanel'
-import PayloadPanel from '../components/PayloadPanel'
-import ResultPanel from '../components/ResultPanel'
+import ApiKeyBar from "../components/ApiKeyBar";
+import MethodPicker from "../components/MethodPicker";
+import ParametersPanel from "../components/ParametersPanel";
+import PayloadPanel from "../components/PayloadPanel";
+import ResultPanel from "../components/ResultPanel";
 
 export default function App() {
   return (
@@ -17,5 +17,5 @@ export default function App() {
         <ResultPanel />
       </main>
     </div>
-  )
+  );
 }

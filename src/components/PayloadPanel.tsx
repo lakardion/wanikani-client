@@ -1,24 +1,24 @@
-import { buildPayload, selectedMethod } from '../state'
+import { buildPayload, selectedMethod } from "../state";
 
 export default function PayloadPanel() {
   const code = () => {
-    const m = selectedMethod()
-    const args = buildPayload()
-    const argsJson = JSON.stringify(args, null, 2)
-    if (m.method === 'get') {
-      const id = args.id
-      return `client.${m.namespace}.get(${id ?? '/* id */'})`
+    const m = selectedMethod();
+    const args = buildPayload();
+    const argsJson = JSON.stringify(args, null, 2);
+    if (m.method === "get") {
+      const id = args.id;
+      return `client.${m.namespace}.get(${id ?? "/* id */"})`;
     }
     if (m.params.length === 0) {
-      return `client.${m.namespace}.${m.method}()`
+      return `client.${m.namespace}.${m.method}()`;
     }
-    return `client.${m.namespace}.${m.method}(${argsJson})`
-  }
+    return `client.${m.namespace}.${m.method}(${argsJson})`;
+  };
 
   return (
     <div class="flex h-full flex-col overflow-hidden border-r border-zinc-800 bg-zinc-950">
       <div class="border-b border-zinc-800 px-4 py-3">
-        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-400">
+        <h2 class="text-sm font-semibold tracking-wider text-zinc-400 uppercase">
           Request payload
         </h2>
       </div>
@@ -26,5 +26,5 @@ export default function PayloadPanel() {
         {code()}
       </pre>
     </div>
-  )
+  );
 }
