@@ -1,4 +1,5 @@
 import { createSignal } from 'solid-js'
+import { GRAMMAR } from '~/lib/grammar'
 import type { Exercise } from '~/server/exercise'
 
 export type Attempt = { answer: string; score: number; feedback: string; pass: boolean } | { answer: string; giveUp: true }
@@ -16,6 +17,32 @@ export function outcome(attempts: Attempt[]): Outcome {
   const last = attempts.at(-1)!
   if ('giveUp' in last) return 'give_up'
   return last.pass ? 'pass' : 'fail'
+}
+
+/** The **Grammar point** pattern; an id that is not in `GRAMMAR` shows as the raw id. */
+export const pattern = (id: string) => GRAMMAR.find((g) => g.id === id)?.pattern ?? id
+
+export type Totals = { done: number; passed: number; gaveUp: number }
+export type PointStats = Totals & { grammarId: string; pattern: string }
+
+export const passRate = (t: Totals) => Math.round((t.passed / t.done) * 100)
+
+/** Totals overall and per **Grammar point**, weakest first: lowest pass rate, then most records. */
+export function stats(records: HistoryRecord[]) {
+  const overall: Totals = { done: 0, passed: 0, gaveUp: 0 }
+  const byId = new Map<string, PointStats>()
+  for (const r of records) {
+    const id = r.exercise.grammarId
+    let point = byId.get(id)
+    if (!point) byId.set(id, (point = { grammarId: id, pattern: pattern(id), done: 0, passed: 0, gaveUp: 0 }))
+    for (const t of [overall, point]) {
+      t.done++
+      if (r.outcome === 'pass') t.passed++
+      if (r.outcome === 'give_up') t.gaveUp++
+    }
+  }
+  const points = [...byId.values()].sort((a, b) => a.passed * b.done - b.passed * a.done || b.done - a.done)
+  return { overall, points }
 }
 
 const DB_NAME = 'wanikani-history'
