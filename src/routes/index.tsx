@@ -1,9 +1,11 @@
+import { A } from "@solidjs/router";
 import { createSignal, Match, onMount, Show, Switch } from "solid-js";
 import { WanikaniApiError } from "wanikani-sdk";
 import ExerciseLoop from "~/components/ExerciseLoop";
+import { FROM_APP } from "~/components/History";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import {
   Card,
   CardContent,
@@ -21,6 +23,14 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field";
 import { client } from "~/lib/client";
+import {
+  deleteHistory,
+  getAll,
+  lastExportAt,
+  persisted,
+  recordingOn,
+  setRecordingOn,
+} from "~/lib/history";
 import {
   clearKnownItems,
   countKnown,
@@ -125,6 +135,97 @@ function KeyForm(props: { onSave?: () => void }) {
   );
 }
 
+function Toggle(props: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label class="flex items-center justify-between gap-2">
+      <span>{props.label}</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={props.checked}
+        class={`relative h-6 w-10 rounded-full transition-colors ${props.checked ? "bg-primary" : "bg-muted"}`}
+        onClick={() => props.onChange(!props.checked)}
+      >
+        <span
+          class={`absolute top-0.5 size-5 rounded-full bg-background shadow transition-all ${props.checked ? "left-[1.125rem]" : "left-0.5"}`}
+        />
+      </button>
+    </label>
+  );
+}
+
+/** Reads the record count and the storage state each time the popover opens. */
+function HistorySettings() {
+  const [saved, setSaved] = createSignal(0);
+  const [persistent, setPersistent] = createSignal(false);
+  const [confirming, setConfirming] = createSignal(false);
+  onMount(() => {
+    getAll().then(
+      (r) => setSaved(r.length),
+      () => {},
+    );
+    void persisted().then(setPersistent);
+  });
+  /** Keeps the confirm step open when the delete fails, so the user can try again. */
+  async function confirmDelete() {
+    try {
+      await deleteHistory();
+    } catch {
+      return;
+    }
+    setSaved(0);
+    setConfirming(false);
+  }
+  const lastExport = () => {
+    const at = lastExportAt();
+    return at ? new Date(at).toLocaleString() : "never";
+  };
+  return (
+    <div class="flex flex-col gap-3">
+      <h4 class="text-xs font-medium tracking-wide text-muted-foreground uppercase">History</h4>
+      <Toggle label="Record History" checked={recordingOn()} onChange={setRecordingOn} />
+      <Show when={!recordingOn()}>
+        <p class="text-xs text-muted-foreground">
+          New Exercises are not recorded. The {fmt(saved())} saved ones stay.
+        </p>
+      </Show>
+      <div class="text-xs text-muted-foreground">
+        {fmt(saved())} Exercises · Storage: {persistent() ? "persistent" : "not persistent"}
+        <br />
+        Last export: {lastExport()}
+      </div>
+      <Show
+        when={confirming()}
+        fallback={
+          <Button
+            variant="destructive"
+            size="sm"
+            disabled={!saved()}
+            onClick={() => setConfirming(true)}
+          >
+            Delete history
+          </Button>
+        }
+      >
+        <div class="flex flex-col gap-2 rounded-md border border-destructive/40 p-2">
+          <p class="text-xs">
+            Delete {fmt(saved())} Exercises from this browser? Export first to keep a copy. This
+            cannot be undone.
+          </p>
+          <div class="grid grid-cols-2 gap-2">
+            <Button variant="outline" size="sm" onClick={() => setConfirming(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" size="sm" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </div>
+        </div>
+      </Show>
+    </div>
+  );
+}
+
 function Settings(props: { onDone: () => void }) {
   const [changing, setChanging] = createSignal(false);
   return (
@@ -172,6 +273,8 @@ function Settings(props: { onDone: () => void }) {
       <p class="text-xs text-muted-foreground">
         Changing or clearing the key also deletes the stored items.
       </p>
+      <hr />
+      <HistorySettings />
     </div>
   );
 }
@@ -190,6 +293,20 @@ const Gear = () => (
   </svg>
 );
 
+const Clock = () => (
+  <svg
+    class="size-5"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    aria-hidden="true"
+  >
+    <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+    <path d="M3 3v5h5M12 7v5l3 2" />
+  </svg>
+);
+
 export default function Home() {
   const [open, setOpen] = createSignal(false);
   onMount(() => void runSync());
@@ -197,16 +314,26 @@ export default function Home() {
     <div class="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-8">
       <header class="flex h-14 items-center justify-between">
         <span class="font-semibold">漢字 practice</span>
-        <Show when={apiKey()}>
-          <Popover open={open()} onOpenChange={setOpen} placement="bottom-end">
-            <PopoverTrigger as={Button} variant="ghost" size="icon" aria-label="Settings">
-              <Gear />
-            </PopoverTrigger>
-            <PopoverContent class="w-80">
-              <Settings onDone={() => setOpen(false)} />
-            </PopoverContent>
-          </Popover>
-        </Show>
+        <div class="flex items-center gap-1">
+          <A
+            href="/history"
+            state={FROM_APP}
+            class={buttonVariants({ variant: "ghost", size: "icon" })}
+            aria-label="History"
+          >
+            <Clock />
+          </A>
+          <Show when={apiKey()}>
+            <Popover open={open()} onOpenChange={setOpen} placement="bottom-end">
+              <PopoverTrigger as={Button} variant="ghost" size="icon" aria-label="Settings">
+                <Gear />
+              </PopoverTrigger>
+              <PopoverContent class="w-80">
+                <Settings onDone={() => setOpen(false)} />
+              </PopoverContent>
+            </Popover>
+          </Show>
+        </div>
       </header>
       <Show when={syncError()}>
         <Alert variant="destructive" class="mb-4 pr-10">

@@ -7,6 +7,19 @@ import { Spinner } from "~/components/ui/spinner";
 import { TextField, TextFieldInput, TextFieldLabel } from "~/components/ui/text-field";
 import { isGiveUp } from "~/lib/grading";
 import { GRAMMAR, randomGrammar } from "~/lib/grammar";
+import {
+  dismissReminder,
+  dismissWarning,
+  exportHistory,
+  queue,
+  record,
+  reminderCount,
+  recordingOn,
+  saveFailedShown,
+  setSaveFailedShown,
+  warningDismissed,
+  type Attempt,
+} from "~/lib/history";
 import type { KnownItem } from "~/lib/known-items";
 import type { Segment } from "~/lib/reading";
 import { wordSample } from "~/lib/word-sample";
@@ -52,7 +65,7 @@ function Waiting(props: { first: boolean }) {
   );
 }
 
-const Section = (props: { title: string; children: JSX.Element }) => (
+export const Section = (props: { title: string; children: JSX.Element }) => (
   <section class="flex flex-col gap-2">
     <h3 class="text-xs font-medium tracking-wide text-muted-foreground uppercase">{props.title}</h3>
     {props.children}
@@ -60,7 +73,7 @@ const Section = (props: { title: string; children: JSX.Element }) => (
 );
 
 /** Japanese text with furigana above each kanji run. */
-const Furigana = (props: { segments: Segment[] }) => (
+export const Furigana = (props: { segments: Segment[] }) => (
   <For each={props.segments}>
     {(s) => (
       <Show when={s.ruby} fallback={s.text}>
@@ -96,7 +109,7 @@ function Verdict(props: { grade: Grade | null }) {
   );
 }
 
-function Explanation(props: { exercise: Exercise }) {
+export function Explanation(props: { exercise: Exercise }) {
   const grammar = () => GRAMMAR.find((g) => g.id === props.exercise.grammarId);
   return (
     <div class="flex flex-col gap-6 overflow-y-auto px-4 pb-4">
@@ -118,7 +131,7 @@ function Explanation(props: { exercise: Exercise }) {
         <div class="flex flex-col gap-1 text-sm">
           <p>
             <span lang="ja" class="font-semibold">
-              {grammar()?.pattern}
+              {grammar()?.pattern ?? props.exercise.grammarId}
             </span>{" "}
             {grammar()?.meaning}
           </p>
@@ -137,108 +150,166 @@ function Explanation(props: { exercise: Exercise }) {
   );
 }
 
-export default function ExerciseLoop(props: { items: KnownItem[] }) {
-  const [step, setStep] = createSignal<Step>({ name: "waiting" });
-  const [first, setFirst] = createSignal(true);
-  const [answer, setAnswer] = createSignal("");
-  /** The last grade of the current **Exercise**; a failed one means the retry is used. */
-  const [grade, setGrade] = createSignal<Grade | null>(null);
-  const [grading, setGrading] = createSignal(false);
-  /** A failed `gradeAnswer` call; the answer stays so Check can send it again. */
-  const [gradeError, setGradeError] = createSignal<Failure | null>(null);
-  let run = 0;
+/** The loop state lives at module scope so it survives a visit to another route; only a reload ends the **Session**. */
+const [step, setStep] = createSignal<Step>({ name: "waiting" });
+const [first, setFirst] = createSignal(true);
+const [answer, setAnswer] = createSignal("");
+/** The last grade of the current **Exercise**; a failed one means the retry is used. */
+const [grade, setGrade] = createSignal<Grade | null>(null);
+const [grading, setGrading] = createSignal(false);
+/** A failed `gradeAnswer` call; the answer stays so Check can send it again. */
+const [gradeError, setGradeError] = createSignal<Failure | null>(null);
+/** The records since the last export or dismiss; the reminder shows at 50 or more. */
+const [sinceExport, setSinceExport] = createSignal(0);
+/** The **Attempts** of the current **Exercise**. */
+let attempts: Attempt[] = [];
+let run = 0;
+let started = false;
 
-  function request() {
-    const { sample, kanji } = wordSample(props.items);
-    return generateExercise({ grammarId: randomGrammar().id, sample, kanji });
+function request(items: KnownItem[]) {
+  const { sample, kanji } = wordSample(items);
+  return generateExercise({ grammarId: randomGrammar().id, sample, kanji });
+}
+/** The prefetch: at most one next **Exercise**, started when the current one shows. */
+let prefetch: ReturnType<typeof request> | null = null;
+
+async function generate(items: KnownItem[]) {
+  const current = ++run;
+  setStep({ name: "waiting" });
+  setAnswer("");
+  setGrade(null);
+  setGradeError(null);
+  attempts = [];
+  const pending = prefetch ?? request(items);
+  prefetch = null;
+  try {
+    const res = await pending;
+    if (current !== run) return;
+    if (res.ok) {
+      setStep({ name: "answering", exercise: res.value });
+      prefetch = request(items);
+      /** Marks the rejection handled; `generate` still sees it when it awaits. */
+      prefetch.catch(() => {});
+    } else {
+      if (res.error === "daily_limit") setGenerationOff(true);
+      setStep({ name: "error", error: res.error });
+    }
+  } catch {
+    if (current === run) setStep({ name: "error", error: "other" });
   }
-  /** The prefetch: at most one next **Exercise**, started when the current one shows. */
-  let prefetch: ReturnType<typeof request> | null = null;
+}
 
-  async function generate() {
-    const current = ++run;
-    setStep({ name: "waiting" });
-    setAnswer("");
+/** Recounts the records for the export reminder; a failed read keeps the last count. */
+async function updateReminder() {
+  try {
+    setSinceExport(await reminderCount());
+  } catch {
+    /* ignore */
+  }
+}
+
+async function exportFromReminder() {
+  await exportHistory();
+  setSinceExport(0);
+}
+
+function dismissFromReminder() {
+  dismissReminder();
+  setSinceExport(0);
+}
+
+function explain(exercise: Exercise) {
+  setCount((c) => ({ passed: c.passed + (grade()?.pass ? 1 : 0), done: c.done + 1 }));
+  setStep({ name: "explanation", exercise });
+  void record(exercise, attempts).finally(updateReminder);
+}
+
+const exercise = () => {
+  const s = step();
+  return s.name === "answering" || s.name === "explanation" ? s.exercise : undefined;
+};
+const failure = () => {
+  const s = step();
+  return s.name === "error" ? s.error : undefined;
+};
+const explaining = () => step().name === "explanation";
+
+async function submit(text: string) {
+  const x = exercise()!;
+  if (isGiveUp(text)) {
+    attempts.push({ answer: text.trim(), giveUp: true });
     setGrade(null);
-    setGradeError(null);
-    const pending = prefetch ?? request();
-    prefetch = null;
-    try {
-      const res = await pending;
-      if (current !== run) return;
-      if (res.ok) {
-        setStep({ name: "answering", exercise: res.value });
-        prefetch = request();
-        /** Marks the rejection handled; `generate` still sees it when it awaits. */
-        prefetch.catch(() => {});
-      } else {
-        if (res.error === "daily_limit") setGenerationOff(true);
-        setStep({ name: "error", error: res.error });
-      }
-    } catch {
-      if (current === run) setStep({ name: "error", error: "other" });
-    }
+    return explain(x);
   }
-
-  function explain(exercise: Exercise) {
-    setCount((c) => ({ passed: c.passed + (grade()?.pass ? 1 : 0), done: c.done + 1 }));
-    setStep({ name: "explanation", exercise });
-  }
-
-  async function submit(text: string) {
-    const x = exercise()!;
-    if (isGiveUp(text)) {
-      setGrade(null);
-      return explain(x);
+  const current = run;
+  const retried = grade() !== null;
+  setGrading(true);
+  setGradeError(null);
+  try {
+    const res = await gradeAnswer({
+      grammarId: x.grammarId,
+      japanese: x.japanese,
+      english: x.english,
+      answer: text,
+    });
+    if (current !== run) return;
+    if (!res.ok) {
+      if (res.error === "daily_limit") setGenerationOff(true);
+      return setGradeError(res.error);
     }
-    const current = run;
-    const retried = grade() !== null;
-    setGrading(true);
-    setGradeError(null);
-    try {
-      const res = await gradeAnswer({
-        grammarId: x.grammarId,
-        japanese: x.japanese,
-        english: x.english,
-        answer: text,
-      });
-      if (current !== run) return;
-      if (!res.ok) {
-        if (res.error === "daily_limit") setGenerationOff(true);
-        return setGradeError(res.error);
-      }
-      setGrade(res.value);
-      setAnswer("");
-      if (res.value.pass || retried) explain(x);
-    } catch {
-      if (current === run) setGradeError("other");
-    } finally {
-      if (current === run) setGrading(false);
-    }
+    attempts.push({ answer: text, ...res.value });
+    setGrade(res.value);
+    setAnswer("");
+    if (res.value.pass || retried) explain(x);
+  } catch {
+    if (current === run) setGradeError("other");
+  } finally {
+    if (current === run) setGrading(false);
   }
+}
 
+export default function ExerciseLoop(props: { items: KnownItem[] }) {
   function next() {
     setFirst(false);
-    void generate();
+    void generate(props.items);
   }
 
-  onMount(() =>
-    generationOff() ? setStep({ name: "error", error: "daily_limit" }) : void generate(),
-  );
-  onCleanup(() => run++);
-
-  const exercise = () => {
-    const s = step();
-    return s.name === "answering" || s.name === "explanation" ? s.exercise : undefined;
-  };
-  const failure = () => {
-    const s = step();
-    return s.name === "error" ? s.error : undefined;
-  };
-  const explaining = () => step().name === "explanation";
+  onMount(() => {
+    if (started) return;
+    started = true;
+    void generate(props.items);
+  });
 
   return (
     <>
+      <Show when={recordingOn() && !warningDismissed()}>
+        <Alert class="mb-4 text-left">
+          <AlertTitle>History is on</AlertTitle>
+          <AlertDescription class="flex flex-col gap-2">
+            <span>
+              Finished Exercises are saved only in this browser. Clearing site data deletes them.
+              Export from History to keep a copy, or turn History off in settings.
+            </span>
+            <Button size="sm" class="w-fit" onClick={dismissWarning}>
+              Got it
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </Show>
+      <Show when={queue().length && saveFailedShown()}>
+        <Alert variant="destructive" class="mb-4 pr-10 text-left">
+          <AlertDescription>
+            This Exercise was not saved to History. The app tries again after the next one.
+          </AlertDescription>
+          <button
+            class="absolute top-3 right-3 text-lg leading-none"
+            aria-label="Dismiss"
+            onClick={() => setSaveFailedShown(false)}
+          >
+            ×
+          </button>
+        </Alert>
+      </Show>
       <div class="flex justify-center">
         <Badge variant="outline" class="tabular-nums">
           ✓ {count().passed} · {count().done} done
@@ -267,7 +338,7 @@ export default function ExerciseLoop(props: { items: KnownItem[] }) {
                       size="sm"
                       variant="outline"
                       class="mt-2"
-                      onClick={() => void generate()}
+                      onClick={() => void generate(props.items)}
                     >
                       Retry
                     </Button>
@@ -365,7 +436,20 @@ export default function ExerciseLoop(props: { items: KnownItem[] }) {
                   <p class="mt-2 text-sm">{x().english}</p>
                 </DrawerHeader>
                 <Explanation exercise={x()} />
-                <div class="border-t p-4 pb-6">
+                <div class="flex flex-col gap-3 border-t p-4 pb-6">
+                  <Show when={sinceExport() >= 50}>
+                    <div class="flex items-center justify-between gap-2 rounded-md bg-muted px-3 py-2 text-xs">
+                      <span>{sinceExport()} Exercises since your last export.</span>
+                      <span class="flex shrink-0 items-center gap-3">
+                        <button class="font-medium underline" onClick={exportFromReminder}>
+                          Export
+                        </button>
+                        <button aria-label="Dismiss" onClick={dismissFromReminder}>
+                          ×
+                        </button>
+                      </span>
+                    </div>
+                  </Show>
                   <Button class="w-full" disabled={generationOff()} onClick={next}>
                     Next
                   </Button>
