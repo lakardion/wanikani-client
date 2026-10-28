@@ -8,9 +8,12 @@ import { TextField, TextFieldInput, TextFieldLabel } from '~/components/ui/text-
 import { isGiveUp } from '~/lib/grading'
 import { GRAMMAR, randomGrammar } from '~/lib/grammar'
 import {
+  dismissReminder,
   dismissWarning,
+  exportHistory,
   queue,
   record,
+  reminderCount,
   recordingOn,
   saveFailedShown,
   setSaveFailedShown,
@@ -140,6 +143,8 @@ const [grade, setGrade] = createSignal<Grade | null>(null)
 const [grading, setGrading] = createSignal(false)
 /** A failed `gradeAnswer` call; the answer stays so Check can send it again. */
 const [gradeError, setGradeError] = createSignal<Failure | null>(null)
+/** The records since the last export or dismiss; the reminder shows at 50 or more. */
+const [sinceExport, setSinceExport] = createSignal(0)
 /** The **Attempts** of the current **Exercise**. */
 let attempts: Attempt[] = []
 let run = 0
@@ -179,10 +184,29 @@ async function generate(items: KnownItem[]) {
   }
 }
 
+/** Recounts the records for the export reminder; a failed read keeps the last count. */
+async function updateReminder() {
+  try {
+    setSinceExport(await reminderCount())
+  } catch {
+    /* ignore */
+  }
+}
+
+async function exportFromReminder() {
+  await exportHistory()
+  setSinceExport(0)
+}
+
+function dismissFromReminder() {
+  dismissReminder()
+  setSinceExport(0)
+}
+
 function explain(exercise: Exercise) {
   setCount((c) => ({ passed: c.passed + (grade()?.pass ? 1 : 0), done: c.done + 1 }))
   setStep({ name: 'explanation', exercise })
-  void record(exercise, attempts)
+  void record(exercise, attempts).finally(updateReminder)
 }
 
 const exercise = () => {
@@ -354,7 +378,20 @@ export default function ExerciseLoop(props: { items: KnownItem[] }) {
                   <p class="mt-2 text-sm">{x().english}</p>
                 </DrawerHeader>
                 <Explanation exercise={x()} />
-                <div class="border-t p-4 pb-6">
+                <div class="flex flex-col gap-3 border-t p-4 pb-6">
+                  <Show when={sinceExport() >= 50}>
+                    <div class="flex items-center justify-between gap-2 rounded-md bg-muted px-3 py-2 text-xs">
+                      <span>{sinceExport()} Exercises since your last export.</span>
+                      <span class="flex shrink-0 items-center gap-3">
+                        <button class="font-medium underline" onClick={exportFromReminder}>
+                          Export
+                        </button>
+                        <button aria-label="Dismiss" onClick={dismissFromReminder}>
+                          ×
+                        </button>
+                      </span>
+                    </div>
+                  </Show>
                   <Button class="w-full" disabled={generationOff()} onClick={next}>
                     Next
                   </Button>

@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover
 import { Spinner } from '~/components/ui/spinner'
 import { TextField, TextFieldDescription, TextFieldInput, TextFieldLabel } from '~/components/ui/text-field'
 import { client } from '~/lib/client'
-import { getAll, lastExportAt, persisted, recordingOn, setRecordingOn } from '~/lib/history'
+import { deleteHistory, getAll, lastExportAt, persisted, recordingOn, setRecordingOn } from '~/lib/history'
 import {
   clearKnownItems,
   countKnown,
@@ -128,10 +128,21 @@ function Toggle(props: { label: string; checked: boolean; onChange: (v: boolean)
 function HistorySettings() {
   const [saved, setSaved] = createSignal(0)
   const [persistent, setPersistent] = createSignal(false)
+  const [confirming, setConfirming] = createSignal(false)
   onMount(() => {
     getAll().then((r) => setSaved(r.length), () => {})
     void persisted().then(setPersistent)
   })
+  /** Keeps the confirm step open when the delete fails, so the user can try again. */
+  async function confirmDelete() {
+    try {
+      await deleteHistory()
+    } catch {
+      return
+    }
+    setSaved(0)
+    setConfirming(false)
+  }
   const lastExport = () => {
     const at = lastExportAt()
     return at ? new Date(at).toLocaleString() : 'never'
@@ -148,6 +159,26 @@ function HistorySettings() {
         <br />
         Last export: {lastExport()}
       </div>
+      <Show
+        when={confirming()}
+        fallback={
+          <Button variant="destructive" size="sm" disabled={!saved()} onClick={() => setConfirming(true)}>
+            Delete history
+          </Button>
+        }
+      >
+        <div class="flex flex-col gap-2 rounded-md border border-destructive/40 p-2">
+          <p class="text-xs">Delete {fmt(saved())} Exercises from this browser? Export first to keep a copy. This cannot be undone.</p>
+          <div class="grid grid-cols-2 gap-2">
+            <Button variant="outline" size="sm" onClick={() => setConfirming(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" size="sm" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </div>
+        </div>
+      </Show>
     </div>
   )
 }
