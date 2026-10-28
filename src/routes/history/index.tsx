@@ -59,7 +59,7 @@ export default function History() {
             <div class="flex flex-col gap-2">
               <p class="text-xs text-muted-foreground">Last export: {lastExportAt() ? fmtDate(lastExportAt()!) : 'never'}</p>
               <div class="grid grid-cols-2 gap-2">
-                <Button variant="secondary" size="sm" disabled={!count()} onClick={() => void exportHistory()}>
+                <Button variant="secondary" size="sm" disabled={!count()} onClick={exportHistory}>
                   Export
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => input.click()}>
@@ -72,7 +72,7 @@ export default function History() {
             </div>
           </PopoverContent>
         </Popover>
-        <input ref={input} type="file" accept=".json,application/json" class="hidden" onChange={() => void onFile()} />
+        <input ref={input} type="file" accept=".json,application/json" class="hidden" onChange={onFile} />
       </header>
       <div class="flex flex-col gap-3">
         <Show when={result()}>

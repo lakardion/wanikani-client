@@ -184,10 +184,29 @@ async function generate(items: KnownItem[]) {
   }
 }
 
+/** Recounts the records for the export reminder; a failed read keeps the last count. */
+async function updateReminder() {
+  try {
+    setSinceExport(await reminderCount())
+  } catch {
+    /* ignore */
+  }
+}
+
+async function exportFromReminder() {
+  await exportHistory()
+  setSinceExport(0)
+}
+
+function dismissFromReminder() {
+  dismissReminder()
+  setSinceExport(0)
+}
+
 function explain(exercise: Exercise) {
   setCount((c) => ({ passed: c.passed + (grade()?.pass ? 1 : 0), done: c.done + 1 }))
   setStep({ name: 'explanation', exercise })
-  void record(exercise, attempts).finally(() => reminderCount().then(setSinceExport, () => {}))
+  void record(exercise, attempts).finally(updateReminder)
 }
 
 const exercise = () => {
@@ -364,10 +383,10 @@ export default function ExerciseLoop(props: { items: KnownItem[] }) {
                     <div class="flex items-center justify-between gap-2 rounded-md bg-muted px-3 py-2 text-xs">
                       <span>{sinceExport()} Exercises since your last export.</span>
                       <span class="flex shrink-0 items-center gap-3">
-                        <button class="font-medium underline" onClick={() => void exportHistory().then(() => setSinceExport(0))}>
+                        <button class="font-medium underline" onClick={exportFromReminder}>
                           Export
                         </button>
-                        <button aria-label="Dismiss" onClick={() => (dismissReminder(), setSinceExport(0))}>
+                        <button aria-label="Dismiss" onClick={dismissFromReminder}>
                           ×
                         </button>
                       </span>

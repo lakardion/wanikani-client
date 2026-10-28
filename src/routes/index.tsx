@@ -133,6 +133,16 @@ function HistorySettings() {
     getAll().then((r) => setSaved(r.length), () => {})
     void persisted().then(setPersistent)
   })
+  /** Keeps the confirm step open when the delete fails, so the user can try again. */
+  async function confirmDelete() {
+    try {
+      await deleteHistory()
+    } catch {
+      return
+    }
+    setSaved(0)
+    setConfirming(false)
+  }
   const lastExport = () => {
     const at = lastExportAt()
     return at ? new Date(at).toLocaleString() : 'never'
@@ -163,11 +173,7 @@ function HistorySettings() {
             <Button variant="outline" size="sm" onClick={() => setConfirming(false)}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => deleteHistory().then(() => (setSaved(0), setConfirming(false)), () => {})}
-            >
+            <Button variant="destructive" size="sm" onClick={confirmDelete}>
               Delete
             </Button>
           </div>
