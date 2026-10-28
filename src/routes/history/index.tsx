@@ -1,23 +1,90 @@
 import { A } from '@solidjs/router'
-import { createMemo, createResource, createSignal, For, Show } from 'solid-js'
+import { createMemo, createResource, createSignal, For, Show, startTransition } from 'solid-js'
 import { BackButton, fmtDate, FROM_APP, OutcomeBadge } from '~/components/History'
 import { Section } from '~/components/ExerciseLoop'
-import { getAll, passRate, pattern, recordingOn, stats, type HistoryRecord } from '~/lib/history'
+import { Alert, AlertDescription } from '~/components/ui/alert'
+import { Button } from '~/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover'
+import {
+  exportHistory,
+  getAll,
+  importHistory,
+  lastExportAt,
+  passRate,
+  pattern,
+  recordingOn,
+  stats,
+  type HistoryRecord,
+  type ImportResult,
+} from '~/lib/history'
+
+const IMPORT_TEXT: Record<Exclude<ImportResult['kind'], 'ok'>, string> = {
+  invalid: 'This file is not a History export. Nothing was imported.',
+  newer: 'This file comes from a newer version of the app. Reload the app, then import again. Nothing was imported.',
+  failed: 'The browser could not save the imported Exercises. Nothing was imported.',
+}
+
+const importText = (r: ImportResult) =>
+  r.kind === 'ok' ? `Imported ${r.imported}, skipped ${r.skipped} (already present).` : IMPORT_TEXT[r.kind]
 
 const tabClass = (on: boolean) => `flex-1 rounded-md py-1.5 text-sm ${on ? 'bg-background shadow' : 'text-muted-foreground'}`
 
 export default function History() {
-  const [records] = createResource(async () =>
+  const [records, { refetch }] = createResource(async () =>
     (await getAll().catch(() => [])).sort((a, b) => b.finishedAt.localeCompare(a.finishedAt)),
   )
   const count = () => records()?.length ?? 0
   const [tab, setTab] = createSignal<'list' | 'stats'>('list')
+  const [menuOpen, setMenuOpen] = createSignal(false)
+  const [result, setResult] = createSignal<ImportResult | null>(null)
+  /** Outside the popover, so it stays mounted while the file picker is open. */
+  let input!: HTMLInputElement
+  async function onFile() {
+    const file = input.files?.[0]
+    input.value = ''
+    if (!file) return
+    setMenuOpen(false)
+    setResult(await importHistory(file))
+    void startTransition(refetch)
+  }
   return (
     <div class="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-8">
-      <header class="flex h-14 items-center">
+      <header class="flex h-14 items-center justify-between">
         <BackButton href="/" label="Practice" />
+        <Popover open={menuOpen()} onOpenChange={setMenuOpen} placement="bottom-end">
+          <PopoverTrigger as={Button} variant="ghost" size="sm">
+            Export / Import
+          </PopoverTrigger>
+          <PopoverContent class="w-72 text-sm">
+            <div class="flex flex-col gap-2">
+              <p class="text-xs text-muted-foreground">Last export: {lastExportAt() ? fmtDate(lastExportAt()!) : 'never'}</p>
+              <div class="grid grid-cols-2 gap-2">
+                <Button variant="secondary" size="sm" disabled={!count()} onClick={() => void exportHistory()}>
+                  Export
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => input.click()}>
+                  Import
+                </Button>
+              </div>
+              <p class="text-xs text-muted-foreground">
+                Export saves History to a file. Import adds the Exercises from a file; the ones already here are skipped.
+              </p>
+            </div>
+          </PopoverContent>
+        </Popover>
+        <input ref={input} type="file" accept=".json,application/json" class="hidden" onChange={() => void onFile()} />
       </header>
       <div class="flex flex-col gap-3">
+        <Show when={result()}>
+          {(r) => (
+            <Alert variant={r().kind === 'ok' ? 'default' : 'destructive'} class="pr-10 text-left">
+              <AlertDescription>{importText(r())}</AlertDescription>
+              <button class="absolute right-3 top-3 text-lg leading-none" aria-label="Dismiss" onClick={() => setResult(null)}>
+                ×
+              </button>
+            </Alert>
+          )}
+        </Show>
         <Show when={!recordingOn() && count()}>
           <p class="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">History is off. New Exercises are not recorded.</p>
         </Show>
